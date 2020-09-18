@@ -6,11 +6,12 @@ import {
   InputType,
   Field,
   ObjectType,
-  Query
+  Query,
 } from "type-graphql";
 import { Context } from "../types";
 import { User } from "../entities/User";
 import argon2 from "argon2";
+import { COOKIE_NAME } from "../constants";
 
 @InputType()
 class UsernamePasswordInput {
@@ -41,62 +42,67 @@ class UserResponse {
 @Resolver()
 export class UserResolver {
   @Query(() => User, { nullable: true })
-  me(@Ctx() { em, req }: Context) {
+  async me(@Ctx() { em, req }: Context) {
     if (!req.session.userId) {
       return null; //not logged in
     }
-    const user = em.findOne(User, { id: req.session.userId });
+    const user = await em.findOne(User, { id: req.session.userId });
     return user;
   }
 
   @Mutation(() => UserResponse)
   async register(
     @Arg("options") options: UsernamePasswordInput,
-    @Ctx() { em }: Context
+    @Ctx() { em, req }: Context
   ): Promise<UserResponse> {
-    const checkUsername = await em.findOne(User, {
-      username: options.username
+    const isUsernameTaken = await em.findOne(User, {
+      username: options.username,
     });
-    if (checkUsername) {
+
+    if (isUsernameTaken !== null) {
       return {
         errors: [
           {
-            field: options.username,
-            message: "That username already exists"
-          }
-        ]
+            field: "username",
+            message: "That username already exists",
+          },
+        ],
       };
     }
-    if (options.username.length < 3) {
+
+    if (options.username.length < 4) {
       return {
         errors: [
           {
-            field: options.username,
-            message: "Length of username must be at least 3 characters"
-          }
-        ]
+            field: "username",
+            message: "Length of username must be at least 4 characters",
+          },
+        ],
       };
     }
+
     if (options.password.length < 4) {
       return {
         errors: [
           {
-            field: options.password,
-            message: "Length of password must be at least 4 characters"
-          }
-        ]
+            field: "password",
+            message: "Length of password must be at least 4 characters",
+          },
+        ],
       };
     }
+
     const hashedPassword = await argon2.hash(options.password);
     const user = em.create(User, {
       username: options.username.toLowerCase(),
-      password: hashedPassword
+      password: hashedPassword,
     });
     try {
       await em.persistAndFlush(user);
     } catch (err) {
-      console.log("message: ", err);
+      console.log("Error in resolvers -> user -> register: ", err);
     }
+    req.session.userId = user.id; // autolog user when registered
     return { user };
   }
 
@@ -107,16 +113,16 @@ export class UserResolver {
   ): Promise<UserResponse> {
     const msg = "Your username or password is incorrect";
     const user = await em.findOne(User, {
-      username: options.username.toLowerCase()
+      username: options.username.toLowerCase(),
     });
     if (!user) {
       return {
         errors: [
           {
-            field: options.username,
-            message: msg
-          }
-        ]
+            field: "username",
+            message: msg,
+          },
+        ],
       };
     }
     const valid = await argon2.verify(user.password, options.password);
@@ -124,10 +130,10 @@ export class UserResolver {
       return {
         errors: [
           {
-            field: options.password,
-            message: msg
-          }
-        ]
+            field: "password",
+            message: msg,
+          },
+        ],
       };
     }
     //store user id session
@@ -149,5 +155,16 @@ export class UserResolver {
   @Query(() => [User])
   getUsers(@Ctx() { em }: Context): Promise<User[]> {
     return em.find(User, {});
+  }
+
+  @Mutation(() => Boolean)
+  async logout(@Ctx() { req, res }: Context): Promise<Boolean> {
+    return await new Promise((resolve) =>
+      req.session.destroy((err) => {
+        res.clearCookie(COOKIE_NAME); // @todo: replace with env-var
+        resolve(err ? false : true);
+        return;
+      })
+    );
   }
 }
