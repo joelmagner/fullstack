@@ -70,6 +70,17 @@ export class UserResolver {
       };
     }
 
+    if (!options.username.match(/(^[a-zA-Z0-9]+$)/)) {
+      return {
+        errors: [
+          {
+            field: "username",
+            message: "The username has invalid formatting",
+          },
+        ],
+      };
+    }
+
     if (options.username.length < 4) {
       return {
         errors: [
