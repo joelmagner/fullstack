@@ -8,15 +8,16 @@ import { useRouter } from "next/router";
 import { useLoginMutation } from "../generated/graphql";
 import { withUrqlClient } from "next-urql";
 import { urqlClient } from "../utils/urqlClient";
+
 interface loginProps {}
 
 const Login: React.FC<loginProps> = ({}) => {
   const router = useRouter();
-  const [_, login] = useLoginMutation();
+  const [, login] = useLoginMutation();
   return (
     <Wrapper variant="small">
       <Formik
-        initialValues={{ username: "", password: "" }}
+        initialValues={{ usernameOrEmail: "", password: "" }}
         onSubmit={async (values, { setErrors }) => {
           const response = await login(values);
           if (response.data?.login.errors) {
@@ -30,10 +31,9 @@ const Login: React.FC<loginProps> = ({}) => {
         {({ isSubmitting }) => (
           <Form>
             <InputField
-              id="username"
-              name="username"
-              placeholder="username"
-              label="username"
+              name="usernameOrEmail"
+              placeholder="username or email"
+              label="Username"
             />
             <Box mt={8}>
               <InputField
