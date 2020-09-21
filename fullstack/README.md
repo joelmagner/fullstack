@@ -3,7 +3,7 @@
 | Package    | Description                  |
 | ---------- | ---------------------------- |
 | Apollo     | Middleware                   |
-| Mikro-ORM  | ORM                          |
+| TypeORM    | ORM                          |
 | Postgresql | DB                           |
 | Express    | Server                       |
 | Redis      | DB                           |
@@ -12,8 +12,6 @@
 | uuid       | Token for email-verification |
 
 `createdb <namn>`
-
-`npm i @mikro-orm/cli @mikro-orm/core @mikro-orm/migrations @mikro-orm/postgresql pg`
 
 `npm i cors express apollo-server-express graphql type-graphql argon2 express-session`
 
