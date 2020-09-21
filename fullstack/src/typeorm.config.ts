@@ -1,16 +1,18 @@
-import { Post } from "./entities/Post";
 import { __prod__ } from "./constants";
-import path from "path";
+import { Post } from "./entities/Post";
 import { User } from "./entities/User";
+import path from "path";
+
 export default {
   migrations: {
     path: path.join(__dirname, "./migrations"),
     pattern: /^[\w-]+\d+\.[tj]s$/,
   },
-  entities: [Post, User],
-  dbName: "fullstack",
-  user: "postgres",
+  type: "postgres",
+  database: "fullstack",
+  username: "postgres",
   password: "joel",
-  type: "postgresql",
-  debug: !__prod__,
-};
+  logging: !__prod__,
+  synchronize: !__prod__,
+  entities: [Post, User],
+} as any;

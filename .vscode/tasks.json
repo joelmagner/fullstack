@@ -34,21 +34,6 @@
       }
     },
     {
-      "label": "BACKEND - Create Mikro-Orm Migration",
-      "type": "shell",
-      "command": "npm",
-      "args": ["run", "create:migration"],
-      "group": "build",
-      "options": {
-        "cwd": "${workspaceFolder}/fullstack/"
-      },
-      "presentation": {
-        "reveal": "always",
-        "panel": "shared",
-        "group": "groupA"
-      }
-    },
-    {
       "label": "WEB - Start Webserver",
       "type": "shell",
       "command": "npm",

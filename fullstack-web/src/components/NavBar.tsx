@@ -10,8 +10,13 @@ export const NavBar: React.FC<NavBarProps> = (props) => {
   const [{ data, fetching }] = useMeQuery({
     pause: isServer(), // only run on client
   });
+  console.log("is me query", data, fetching);
   const [{ fetching: logoutFetching }, logout] = useLogoutMutation();
   let body = null;
+
+  if (fetching) {
+    console.log("fetching", data);
+  }
 
   if (!data?.me) {
     // validating
@@ -29,7 +34,10 @@ export const NavBar: React.FC<NavBarProps> = (props) => {
     body = (
       <>
         <Flex>
-          <Box mr={4}>{data.me.username}</Box>
+          <Box mr={4}>
+            {data.me.username.charAt(0).toUpperCase() +
+              data.me.username.slice(1)}
+          </Box>
           <Button
             onClick={() => logout()}
             isLoading={logoutFetching}
