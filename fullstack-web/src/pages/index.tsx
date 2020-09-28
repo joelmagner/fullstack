@@ -1,9 +1,9 @@
 import {
   Box,
   Button,
+  CircularProgress,
   Flex,
   Heading,
-  Icon,
   Link,
   Stack,
   Text,
@@ -35,14 +35,20 @@ const Index = () => {
 
   return (
     <Layout>
-      <Flex align="center" mb={8}>
-        <Heading>Post feed</Heading>
-        <NextLink href="/create-post">
-          <Link ml="auto">Create post</Link>
-        </NextLink>
-      </Flex>
       {!data && fetching ? (
-        <div>loading...</div>
+        <Layout>
+          <Flex>
+            <CircularProgress
+              mt={1}
+              size="512px"
+              isIndeterminate
+              color="green"
+              justifyContent="center"
+              alignItems="center"
+              alignSelf="center"
+            ></CircularProgress>
+          </Flex>
+        </Layout>
       ) : (
         <Stack spacing={8}>
           {data!.posts.posts.map((p) => (
@@ -55,7 +61,7 @@ const Index = () => {
                   </Link>
                 </NextLink>
                 <Flex>
-                  <Text mr={1}>By</Text>
+                  <Text mr={1}>Posted by</Text>
                   <Text
                     style={{ textTransform: "capitalize", fontWeight: "bold" }}
                   >
@@ -97,4 +103,4 @@ const Index = () => {
   );
 };
 
-export default withUrqlClient(urqlClient, { ssr: true })(Index);
+export default withUrqlClient(urqlClient)(Index);
