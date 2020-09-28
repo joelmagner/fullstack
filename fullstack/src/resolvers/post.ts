@@ -116,9 +116,16 @@ export class PostResolver {
   }
 
   @Mutation(() => Boolean)
-  async deletePost(@Arg("id") id: number): Promise<Boolean> {
+  @UseMiddleware(isAuth)
+  async deletePost(
+    @Arg("id", () => Int) id: number,
+    @Ctx() { req }: Context
+  ): Promise<Boolean> {
     try {
-      await Post.delete(id);
+      const { userId } = req.session;
+      await Post.delete({ id, creatorId: userId });
+      //only creator should be able to delete their own posts.
+      //@todo: add support for admin-roles.
     } catch {
       return false;
     }
