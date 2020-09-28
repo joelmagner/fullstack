@@ -1,16 +1,22 @@
-import { Context } from "../types";
 import {
-  Resolver,
-  Query,
   Arg,
-  Mutation,
-  InputType,
-  Field,
   Ctx,
+  Field,
+  FieldResolver,
+  InputType,
+  Int,
+  Mutation,
+  ObjectType,
+  Query,
+  Resolver,
+  Root,
   UseMiddleware,
 } from "type-graphql";
+import { LessThan } from "typeorm";
 import { Post } from "../entities/Post";
+import { Vote } from "../entities/Vote";
 import { isAuth } from "../middleware/isAuth";
+import { Context } from "../types";
 
 @InputType()
 class PostInput {
@@ -20,16 +26,63 @@ class PostInput {
   text: string;
 }
 
-@Resolver()
+@ObjectType()
+class PaginatedPosts {
+  @Field(() => [Post])
+  posts: Post[];
+  @Field()
+  hasMore: boolean; // to prevent user from requesting more data is none exists.
+}
+
+@Resolver(Post)
 export class PostResolver {
-  @Query(() => [Post])
-  posts(): Promise<Post[]> {
-    return Post.find();
+  @FieldResolver(() => String)
+  textSnippet(@Root() root: Post) {
+    return root.text.length >= 50 ? root.text.slice(0, 50) + "..." : root.text;
+  }
+
+  @Query(() => PaginatedPosts)
+  async posts(
+    @Arg("limit", () => Int) limit: number,
+    @Arg("cursor", () => String, { nullable: true }) cursor: string | null,
+    @Ctx() { req }: Context
+  ): Promise<PaginatedPosts> {
+    const realLimit = Math.min(50, limit);
+    const morePostsExist = realLimit + 1; // to deal with pagination.
+    // if we request limit + 1 and get that back, we know there's more items to be fetched in the future for the client.
+    const { userId } = req.session;
+    const getPosts = await Post.find({
+      take: morePostsExist,
+      where:
+        cursor == null
+          ? {}
+          : {
+              createdAt: LessThan(new Date(parseInt(cursor))),
+            },
+      order: { createdAt: "DESC" },
+      join: {
+        alias: "user",
+        innerJoinAndSelect: {
+          id: "user.creator",
+        },
+      },
+    }).then(async (x) => {
+      for (let i = 0; i < x.length; i++) {
+        const vote = await Vote.findOne({ postId: x[i].id, userId });
+        x[i].voteStatus = vote?.value || null;
+      }
+      return x;
+    });
+
+    return {
+      posts: getPosts.slice(0, realLimit), //cutoff at requested-limit
+      hasMore: getPosts.length === morePostsExist,
+    };
   }
 
   @Query(() => Post, { nullable: true })
-  post(@Arg("id") id: number): Promise<Post | undefined> {
-    return Post.findOne(id);
+  async post(@Arg("id") id: number): Promise<Post | undefined> {
+    return await Post.findOne(id);
   }
 
   @Mutation(() => Post)
@@ -38,7 +91,10 @@ export class PostResolver {
     @Arg("input") input: PostInput,
     @Ctx() { req }: Context
   ): Promise<Post> {
-    return Post.create({ creatorId: req.session.userId, ...input }).save();
+    return await Post.create({
+      creatorId: req.session.userId,
+      ...input,
+    }).save();
   }
 
   @Mutation(() => Post, { nullable: true })

@@ -14,6 +14,8 @@ import cors from "cors";
 import { createConnection } from "typeorm";
 import { Post } from "./entities/Post";
 import { User } from "./entities/User";
+import { Vote } from "./entities/Vote";
+import { VoteResolver } from "./resolvers/vote";
 
 const main = async () => {
   await createConnection({
@@ -23,7 +25,7 @@ const main = async () => {
     password: "joel",
     logging: !__prod__,
     synchronize: !__prod__,
-    entities: [Post, User],
+    entities: [Post, User, Vote],
   });
 
   const app = express();
@@ -55,7 +57,7 @@ const main = async () => {
   );
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
-      resolvers: [PostResolver, UserResolver],
+      resolvers: [PostResolver, UserResolver, VoteResolver],
       validate: false,
     }),
     context: ({ req, res }): Context => ({ req, res, redis }),

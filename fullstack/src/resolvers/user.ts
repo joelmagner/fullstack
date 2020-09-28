@@ -1,4 +1,12 @@
-import { Resolver, Ctx, Arg, Mutation, Query } from "type-graphql";
+import {
+  Resolver,
+  Ctx,
+  Arg,
+  Mutation,
+  Query,
+  FieldResolver,
+  Root,
+} from "type-graphql";
 import { Context } from "../types";
 import { User } from "../entities/User";
 import argon2 from "argon2";
@@ -15,8 +23,18 @@ import { v4 } from "uuid";
 import { validatePassword } from "../utils/password.validate";
 import { validateToken } from "../utils/token.validate";
 import { UserResponse } from "./UserResponse";
-@Resolver()
+@Resolver(User)
 export class UserResolver {
+  @FieldResolver(() => String)
+  email(@Root() user: User, @Ctx() { req }: Context) {
+    //current user, ok to show them their own email
+    if (req.session.userId === user.id) {
+      return user.email;
+    }
+    //current user tries to access someone elses email
+    return "";
+  }
+
   @Mutation(() => UserResponse)
   async changePassword(
     @Arg("token") token: string,
@@ -71,7 +89,7 @@ export class UserResolver {
 
     await sendEmail(
       email,
-      `<a href="${REQUEST_ORIGIN_URL_CORS}/change-password/${token}">Reset Password</a>`
+      `Hi, click to <a href="${REQUEST_ORIGIN_URL_CORS}/change-password/${token}">Reset Password</a>`
     );
 
     return true;
@@ -94,36 +112,26 @@ export class UserResolver {
       where: { username: options.username },
     });
     const isEmailTaken = await User.findOne({
-      where: { email: options.email },
+      where: { email: options.email.toLowerCase() },
     });
     const errors = validateRegister(options, isUsernameTaken, isEmailTaken);
 
     if (errors) {
       return { errors };
     }
+
     const hashedPassword = await argon2.hash(options.password);
-    // const user = User.create({
-    //   username: options.username.toLowerCase(),
-    //   password: hashedPassword,
-    //   email: options.email.toLowerCase(),
-    // });
     const user = User.create({
       username: options.username.toLowerCase(),
       password: hashedPassword,
       email: options.email.toLowerCase(),
     });
-    // const user = User.create({
-    //   username: options.username.toLowerCase(),
-    //   password: hashedPassword,
-    //   email: options.email.toLowerCase(),
-    // });
     try {
-      console.log(user);
       await user.save();
     } catch (err) {
       console.log("Error in resolvers -> user -> register: ", err);
     }
-    req.session.userId = await user.id; // autolog user when registered
+    req.session.userId = user.id; // autolog user when registered
     return { user };
   }
 
@@ -136,8 +144,8 @@ export class UserResolver {
     const msg = "Your username, email or password is incorrect";
     const user = await User.findOne(
       usernameOrEmail.includes("@")
-        ? { where: { email: usernameOrEmail } }
-        : { where: { username: usernameOrEmail } }
+        ? { where: { email: usernameOrEmail.toLowerCase() } }
+        : { where: { username: usernameOrEmail.toLowerCase() } }
     );
 
     if (!user) {
