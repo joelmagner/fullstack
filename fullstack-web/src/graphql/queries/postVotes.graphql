@@ -1,0 +1,7 @@
+query GetPostVotes($postId: Int!) {
+  getPostVotes(postId: $postId) {
+    userId
+    postId
+    value
+  }
+}
