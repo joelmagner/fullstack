@@ -123,10 +123,13 @@ export class PostResolver {
   ): Promise<Boolean> {
     try {
       const { userId } = req.session;
+      await Vote.delete({ postId: id, userId });
       await Post.delete({ id, creatorId: userId });
       //only creator should be able to delete their own posts.
+      //@todo: check if it is necessary to remove all votes on that post or how to handle the FK here.
       //@todo: add support for admin-roles.
-    } catch {
+    } catch (ex) {
+      console.log("Error while deleting post", ex);
       return false;
     }
     return true;

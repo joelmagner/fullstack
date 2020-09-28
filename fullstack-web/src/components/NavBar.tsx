@@ -48,7 +48,6 @@ export const NavBar: React.FC<NavBarProps> = ({}) => {
   const [{ fetching: logoutFetching }, logout] = useLogoutMutation();
   let body = null;
   let username = null;
-  console.log(router);
   if (!data?.me) {
     // validating
     body = (

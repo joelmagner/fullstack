@@ -6,12 +6,13 @@ import {
   Text,
   Stack,
   Divider,
+  IconButton,
 } from "@chakra-ui/core";
 import { withUrqlClient } from "next-urql";
 import { useRouter } from "next/router";
 import React from "react";
 import { Layout } from "../../components/Layout";
-import { usePostQuery } from "../../generated/graphql";
+import { useDeletePostMutation, usePostQuery } from "../../generated/graphql";
 import { urqlClient } from "../../utils/urqlClient";
 
 interface PostPageProps {}
@@ -28,6 +29,8 @@ const Post: React.FC<PostPageProps> = ({}) => {
       id: postId,
     },
   });
+
+  const [{ fetching: deleteProgress }, deletePost] = useDeletePostMutation();
 
   const postDate = new Date(
     parseInt(data?.post?.createdAt || "")
@@ -59,33 +62,47 @@ const Post: React.FC<PostPageProps> = ({}) => {
     );
   }
 
-  return (
-    <Layout>
-      <Stack spacing={8}>
-        <Flex key={data.post.id} p={5} shadow="md" borderWidth="1px">
-          {/* <VoteSection post={} /> */}
-          <Box flex={1}>
-            <Heading>{data.post.title}</Heading>
-            <Flex>
-              <Text mr={1}>Posted by</Text>
-              <Text style={{ textTransform: "capitalize", fontWeight: "bold" }}>
-                {data.post.creator.username}
-              </Text>
-              <Divider orientation="vertical" />
-              <Text> {postDate} </Text>
-            </Flex>
+  if (data.post) {
+    return (
+      <Layout>
+        <Stack spacing={8}>
+          <Flex key={data.post.id} p={5} shadow="md" borderWidth="1px">
+            {/* <VoteSection post={} /> */}
+            <Box flex={1}>
+              <Heading>{data.post.title}</Heading>
+              <Flex>
+                <Text mr={1}>Posted by</Text>
+                <Text
+                  style={{ textTransform: "capitalize", fontWeight: "bold" }}
+                >
+                  {data.post.creator.username}
+                </Text>
+                <Divider orientation="vertical" />
+                <Text> {postDate} </Text>
+              </Flex>
 
-            <Flex align="center">
-              <Text flex={1} mt={4}>
-                {data.post.text}
-              </Text>
-              <Box ml="auto"></Box>
-            </Flex>
-          </Box>
-        </Flex>
-      </Stack>
-    </Layout>
-  );
+              <Flex align="center">
+                <Text flex={1} mt={4}>
+                  {data.post.text}
+                </Text>
+                <Box ml="auto"></Box>
+              </Flex>
+              <Divider />
+              <Flex>
+                <IconButton
+                  ml="auto"
+                  icon="delete"
+                  aria-label="Delete post"
+                  isLoading={deleteProgress}
+                  onClick={async () => await deletePost({ id: data!.post!.id })}
+                ></IconButton>
+              </Flex>
+            </Box>
+          </Flex>
+        </Stack>
+      </Layout>
+    );
+  }
 };
 
 export default withUrqlClient(urqlClient, { ssr: true })(Post);
