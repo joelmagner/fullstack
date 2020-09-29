@@ -12,7 +12,7 @@ import {
   Root,
   UseMiddleware,
 } from "type-graphql";
-import { LessThan } from "typeorm";
+import { getConnection, LessThan } from "typeorm";
 import { NOT_AUTHORIZED } from "../constants";
 import { Post } from "../entities/Post";
 import { Vote } from "../entities/Vote";
@@ -22,7 +22,7 @@ import { validatePost } from "../utils/validation/post.validate";
 import { PostResponse } from "./PostResponse";
 
 @InputType()
-class PostInput {
+export class PostInput {
   @Field()
   title: string;
   @Field()
@@ -95,31 +95,48 @@ export class PostResolver {
     @Ctx() { req }: Context
   ): Promise<PostResponse | null> {
     const { userId } = req.session;
-    const errors = validatePost(userId, input.text, input.title);
-    await Post.create({
+    const errors = validatePost(userId, input);
+    if (errors) {
+      return { errors };
+    }
+
+    const post = await Post.create({
       creatorId: req.session.userId,
       ...input,
     }).save();
-    return { errors } as PostResponse;
+
+    return { post };
   }
 
   @Mutation(() => PostResponse, { nullable: true })
   @UseMiddleware(isAuth)
   async updatePost(
     @Arg("id", () => Int) id: number,
-    @Arg("title") title: string,
-    @Arg("text") text: string,
+    @Arg("input") input: PostInput,
     @Ctx() { req }: Context
   ): Promise<PostResponse | null> {
-    const post = await Post.findOne(id);
-
     const { userId } = req.session;
-    const errors = validatePost(userId, title, text, post);
+    const errors = validatePost(userId, input, await Post.findOne(id));
 
-    if (typeof title !== undefined) {
-      await Post.update({ id }, { title, text });
+    if (errors) {
+      return { errors };
     }
-    return { errors } as PostResponse;
+
+    const post = await getConnection()
+      .createQueryBuilder()
+      .update(Post)
+      .set({ ...input })
+      .where('id = :id and "creatorId" = :creatorId', {
+        id,
+        creatorId: userId,
+      })
+      .returning("*")
+      .execute()
+      .then((response) => {
+        return response.raw[0];
+      });
+
+    return { post };
   }
 
   @Mutation(() => Boolean)

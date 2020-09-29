@@ -7,6 +7,7 @@ import { useCreatePostMutation, useMeQuery } from "../generated/graphql";
 import { urqlClient } from "../utils/urqlClient";
 import { useRouter } from "next/router";
 import { Layout } from "../components/Layout";
+import { toErrorMap } from "../utils/toErrorMap";
 
 interface CreatePostProps {}
 
@@ -24,12 +25,14 @@ const CreatePost: React.FC<CreatePostProps> = ({}) => {
     <Layout variant="small">
       <Formik
         initialValues={{ title: "", text: "" }}
-        onSubmit={async (values) => {
-          const { error } = await createPost({ input: values });
-          if (!error) {
+        onSubmit={async (values, { setErrors }) => {
+          const response = await createPost({ input: values });
+          console.log("skapa post", response);
+          if (response.data?.createPost?.errors) {
+            setErrors(toErrorMap(response.data.createPost.errors));
+          } else if (response.data?.createPost?.post) {
             router.push("/");
           }
-          //allow global-error-handler to deal with any errors.
         }}
       >
         {({ isSubmitting }) => (

@@ -1,34 +1,27 @@
 import {
   Box,
   CircularProgress,
+  Divider,
   Flex,
   Heading,
-  Text,
-  Stack,
-  Divider,
   IconButton,
+  Link,
+  Stack,
+  Text,
 } from "@chakra-ui/core";
 import { withUrqlClient } from "next-urql";
-import { useRouter } from "next/router";
+import NextLink from "next/link";
 import React from "react";
 import { Layout } from "../../components/Layout";
-import { useDeletePostMutation, usePostQuery } from "../../generated/graphql";
+import { useDeletePostMutation, useMeQuery } from "../../generated/graphql";
+import { getPostFromUrl } from "../../utils/getPostFromUrl";
 import { urqlClient } from "../../utils/urqlClient";
 
 interface PostPageProps {}
 
 const Post: React.FC<PostPageProps> = ({}) => {
-  const router = useRouter();
-
-  const postId =
-    typeof router.query?.id === "string" ? parseInt(router.query?.id) : -1;
-
-  const [{ data, error, fetching }] = usePostQuery({
-    pause: postId === -1, // bad URL-param. Don't even bother sending request to server.
-    variables: {
-      id: postId,
-    },
-  });
+  const [{ data: meQuery }] = useMeQuery();
+  const [{ data, error, fetching }] = getPostFromUrl();
 
   const [{ fetching: deleteProgress }, deletePost] = useDeletePostMutation();
 
@@ -60,9 +53,7 @@ const Post: React.FC<PostPageProps> = ({}) => {
         <Box>Post could not be found...</Box>
       </Layout>
     );
-  }
-
-  if (data.post) {
+  } else {
     return (
       <Layout>
         <Stack spacing={8}>
@@ -87,17 +78,34 @@ const Post: React.FC<PostPageProps> = ({}) => {
                 </Text>
                 <Box ml="auto"></Box>
               </Flex>
-              {/* @todo: hide button if it's not your post. */}
-              <Divider />
-              <Flex>
-                <IconButton
-                  ml="auto"
-                  icon="delete"
-                  aria-label="Delete post"
-                  isLoading={deleteProgress}
-                  onClick={async () => await deletePost({ id: data!.post!.id })}
-                ></IconButton>
-              </Flex>
+              {meQuery?.me?.id === data.post.creator.id ? (
+                <>
+                  <Divider />
+                  <Flex>
+                    <Box ml="auto">
+                      <NextLink
+                        href="/post/edit/[id]"
+                        as={`/post/edit/${data.post.id}`}
+                      >
+                        <IconButton
+                          as={Link}
+                          mr={4}
+                          icon="edit"
+                          aria-label="Edit post"
+                        ></IconButton>
+                      </NextLink>
+                      <IconButton
+                        icon="delete"
+                        aria-label="Delete post"
+                        isLoading={deleteProgress}
+                        onClick={async () =>
+                          await deletePost({ id: data!.post!.id })
+                        }
+                      ></IconButton>
+                    </Box>
+                  </Flex>
+                </>
+              ) : null}
             </Box>
           </Flex>
         </Stack>

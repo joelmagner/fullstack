@@ -10,3 +10,4 @@ export class PostResponse {
   @Field(() => Post, { nullable: true })
   post?: Post;
 }
+

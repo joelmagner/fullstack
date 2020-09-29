@@ -1,17 +1,9 @@
 import { NOT_AUTHORIZED } from "../../constants";
 import { Post } from "../../entities/Post";
+import { PostInput } from "../../resolvers/post";
 
-export const validatePost = (
-  userId: number,
-  title: string,
-  text: string,
-  post?: Post
-) => {
-  if (!post) {
-    return null;
-  }
-
-  if (title.length <= 5) {
+export const validatePost = (userId: number, input: PostInput, post?: Post) => {
+  if (input.title.length <= 5) {
     return [
       {
         field: "title",
@@ -19,17 +11,17 @@ export const validatePost = (
       },
     ];
   }
-  if (text.length <= 5) {
+  if (input.text.length <= 5) {
     return [
       {
         field: "text",
-        message: "Post title must be at least 5 characters.",
+        message: "Post text must have at least 5 characters.",
       },
     ];
   }
-  if (post.creatorId !== userId) {
+  if (post && post.creatorId !== userId) {
     throw new Error(NOT_AUTHORIZED);
   }
 
-  return post;
+  return null;
 };
