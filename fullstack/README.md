@@ -9,5 +9,5 @@
 | Redis      | DB                           |
 | IORedis    | Get promises for Redis       |
 | Argon2     | Encryption                   |
-| uuid       | Token for email-verification |
-| nodemailer | Generate forgot-password     |
+| uuid       | Token for Email-verification |
+| nodemailer | Generate Email               |
