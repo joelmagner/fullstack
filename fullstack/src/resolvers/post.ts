@@ -13,10 +13,13 @@ import {
   UseMiddleware,
 } from "type-graphql";
 import { LessThan } from "typeorm";
+import { NOT_AUTHORIZED } from "../constants";
 import { Post } from "../entities/Post";
 import { Vote } from "../entities/Vote";
 import { isAuth } from "../middleware/isAuth";
 import { Context } from "../types";
+import { validatePost } from "../utils/validation/post.validate";
+import { PostResponse } from "./PostResponse";
 
 @InputType()
 class PostInput {
@@ -85,34 +88,38 @@ export class PostResolver {
     return await Post.findOne(id, { relations: ["creator"] });
   }
 
-  @Mutation(() => Post)
+  @Mutation(() => PostResponse, { nullable: true })
   @UseMiddleware(isAuth)
   async createPost(
     @Arg("input") input: PostInput,
     @Ctx() { req }: Context
-  ): Promise<Post> {
-    return await Post.create({
+  ): Promise<PostResponse | null> {
+    const { userId } = req.session;
+    const errors = validatePost(userId, input.text, input.title);
+    await Post.create({
       creatorId: req.session.userId,
       ...input,
     }).save();
+    return { errors } as PostResponse;
   }
 
-  @Mutation(() => Post, { nullable: true })
+  @Mutation(() => PostResponse, { nullable: true })
+  @UseMiddleware(isAuth)
   async updatePost(
-    @Arg("id") id: number,
-    @Arg("title") title: string
-  ): Promise<Post | null> {
+    @Arg("id", () => Int) id: number,
+    @Arg("title") title: string,
+    @Arg("text") text: string,
+    @Ctx() { req }: Context
+  ): Promise<PostResponse | null> {
     const post = await Post.findOne(id);
-    if (!post) {
-      return null;
-    }
+
+    const { userId } = req.session;
+    const errors = validatePost(userId, title, text, post);
 
     if (typeof title !== undefined) {
-      post.title = title;
-      await Post.update({ id }, { title });
+      await Post.update({ id }, { title, text });
     }
-
-    return post;
+    return { errors } as PostResponse;
   }
 
   @Mutation(() => Boolean)
@@ -122,11 +129,19 @@ export class PostResolver {
     @Ctx() { req }: Context
   ): Promise<Boolean> {
     try {
+      const post = await Post.findOne(id);
+      if (!post) {
+        return false;
+      }
+
       const { userId } = req.session;
-      await Vote.delete({ postId: id, userId });
+      if (post.creatorId != userId) {
+        throw new Error(NOT_AUTHORIZED);
+      }
+
+      // await Vote.delete({ postId: id }); // using CASCADE instead.
       await Post.delete({ id, creatorId: userId });
-      //only creator should be able to delete their own posts.
-      //@todo: check if it is necessary to remove all votes on that post or how to handle the FK here.
+      //only creator is able to delete their own posts.
       //@todo: add support for admin-roles.
     } catch (ex) {
       console.log("Error while deleting post", ex);

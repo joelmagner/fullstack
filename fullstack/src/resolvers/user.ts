@@ -16,13 +16,13 @@ import {
   REQUEST_ORIGIN_URL_CORS,
 } from "../constants";
 import { UsernamePasswordInput } from "./UsernamePasswordInput";
-import { validateRegister } from "../utils/register.validate";
-import { passwordField, usernameOrEmailField } from "../utils/field.names";
+import { PASSWORD_FIELD, USERNAME_OR_EMAIL_FIELD } from "../utils/field.names";
 import { sendEmail } from "../utils/email";
 import { v4 } from "uuid";
-import { validatePassword } from "../utils/password.validate";
-import { validateToken } from "../utils/token.validate";
 import { UserResponse } from "./UserResponse";
+import { validatePassword } from "../utils/validation/password.validate";
+import { validateToken } from "../utils/validation/token.validate";
+import { validateRegister } from "../utils/validation/register.validate";
 @Resolver(User)
 export class UserResolver {
   @FieldResolver(() => String)
@@ -152,7 +152,7 @@ export class UserResolver {
       return {
         errors: [
           {
-            field: usernameOrEmailField,
+            field: USERNAME_OR_EMAIL_FIELD,
             message: msg,
           },
         ],
@@ -163,7 +163,7 @@ export class UserResolver {
       return {
         errors: [
           {
-            field: usernameOrEmailField,
+            field: USERNAME_OR_EMAIL_FIELD,
             message: msg,
           },
         ],
@@ -175,7 +175,7 @@ export class UserResolver {
       return {
         errors: [
           {
-            field: passwordField,
+            field: PASSWORD_FIELD,
             message: msg,
           },
         ],

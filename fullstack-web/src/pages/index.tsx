@@ -51,33 +51,38 @@ const Index = () => {
         </Layout>
       ) : (
         <Stack spacing={8}>
-          {data!.posts.posts.map((p) => (
-            <Flex key={p.id} p={5} shadow="md" borderWidth="1px">
-              <VoteSection post={p} />
-              <Box flex={1}>
-                <NextLink href="/post/[id]" as={`/post/${p.id}`}>
-                  <Link>
-                    <Heading fontSize="xl">{p.title}</Heading>
-                  </Link>
-                </NextLink>
-                <Flex>
-                  <Text mr={1}>Posted by</Text>
-                  <Text
-                    style={{ textTransform: "capitalize", fontWeight: "bold" }}
-                  >
-                    {p.creator.username}
-                  </Text>
-                </Flex>
+          {data!.posts.posts.map((p) =>
+            !p ? null : (
+              <Flex key={p.id} p={5} shadow="md" borderWidth="1px">
+                <VoteSection post={p} />
+                <Box flex={1}>
+                  <NextLink href="/post/[id]" as={`/post/${p.id}`}>
+                    <Link>
+                      <Heading fontSize="xl">{p.title}</Heading>
+                    </Link>
+                  </NextLink>
+                  <Flex>
+                    <Text mr={1}>Posted by</Text>
+                    <Text
+                      style={{
+                        textTransform: "capitalize",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {p.creator.username}
+                    </Text>
+                  </Flex>
 
-                <Flex align="center">
-                  <Text flex={1} mt={4}>
-                    {p.textSnippet}
-                  </Text>
-                  <Box ml="auto"></Box>
-                </Flex>
-              </Box>
-            </Flex>
-          ))}
+                  <Flex align="center">
+                    <Text flex={1} mt={4}>
+                      {p.textSnippet}
+                    </Text>
+                    <Box ml="auto"></Box>
+                  </Flex>
+                </Box>
+              </Flex>
+            )
+          )}
         </Stack>
       )}
       {data ? (

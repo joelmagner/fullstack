@@ -1,4 +1,4 @@
-import { User } from "../entities/User";
+import { User } from "../../entities/User";
 
 export const validateToken = (token?: string, userId?: User) => {
   if (!token) {

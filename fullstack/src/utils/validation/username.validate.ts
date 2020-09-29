@@ -1,10 +1,10 @@
-import { usernameField } from "./field.names";
+import { USERNAME_FIELD } from "../field.names";
 
 export const validateUsername = (username: string) => {
   if (!username.match(/(^[a-zA-Z0-9]+$)/)) {
     return [
       {
-        field: usernameField,
+        field: USERNAME_FIELD,
         message: "The username has invalid formatting",
       },
     ];
@@ -13,7 +13,7 @@ export const validateUsername = (username: string) => {
   if (username.length < 4) {
     return [
       {
-        field: usernameField,
+        field: USERNAME_FIELD,
         message: "Length of username must be at least 4 characters",
       },
     ];

@@ -87,6 +87,7 @@ const Post: React.FC<PostPageProps> = ({}) => {
                 </Text>
                 <Box ml="auto"></Box>
               </Flex>
+              {/* @todo: hide button if it's not your post. */}
               <Divider />
               <Flex>
                 <IconButton

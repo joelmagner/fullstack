@@ -1,7 +1,7 @@
-import { User } from "../entities/User";
-import { UsernamePasswordInput } from "../resolvers/UsernamePasswordInput";
+import { User } from "../../entities/User";
+import { UsernamePasswordInput } from "../../resolvers/UsernamePasswordInput";
+import { USERNAME_FIELD } from "../field.names";
 import { validateEmail } from "./email.validate";
-import { emailField, usernameField } from "./field.names";
 import { validatePassword } from "./password.validate";
 import { validateUsername } from "./username.validate";
 
@@ -13,7 +13,7 @@ export const validateRegister = (
   if (isUsernameTaken !== undefined) {
     return [
       {
-        field: usernameField,
+        field: USERNAME_FIELD,
         message: "That username already exists",
       },
     ];
@@ -22,7 +22,7 @@ export const validateRegister = (
   if (isEmailTaken !== undefined) {
     return [
       {
-        field: emailField,
+        field: USERNAME_FIELD,
         message: "That email already exists",
       },
     ];

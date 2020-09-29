@@ -37,15 +37,13 @@ export class VoteResolver {
 
     if (!userAlreadyVoted) {
       // has not voted, insert vote
-      console.log("HAS NOT VOTED!");
       await Vote.insert({ userId, postId, value: vote });
 
       if (currentPostVotes !== undefined) {
         await Post.update(postId, { votes: currentPostVotes + vote });
-      } else {
-        console.log("CurrentPostVotes was undefined???????");
+        return true;
       }
-      return true;
+      return false;
     }
 
     if (
@@ -54,7 +52,6 @@ export class VoteResolver {
       userAlreadyVoted.value == value &&
       currentPostVotes !== undefined
     ) {
-      console.log("HAS UPVOTED ALREADY!");
       //the user has already upvoted, remove it.
       await Post.update(postId, { votes: currentPostVotes + VoteAction.Down }); //negate overall votes
       await Vote.delete({ userId, postId, value }); // reset vote-table
@@ -66,8 +63,6 @@ export class VoteResolver {
       currentPostVotes !== undefined
     ) {
       //the user has already downvoted, remove it.
-
-      console.log("HAS DOWNVOTED ALREADY!");
       await Post.update(postId, { votes: currentPostVotes + VoteAction.Up });
       await Vote.delete({ userId, postId, value });
       return false;
@@ -77,32 +72,29 @@ export class VoteResolver {
       currentPostVotes !== undefined
     ) {
       //user changed from up to downvote or vise versa
-      console.log("USER CHANGED FROM UPVOTE TO DOWNVOTE");
       await Post.update(postId, { votes: currentPostVotes + 2 * vote });
       await Vote.update({ userId, postId }, { value: vote });
-    } else {
-      console.log("HUR FAN HAMNADE VI HÄR?");
     }
-    console.log(
-      "\nuservote: ",
-      userAlreadyVoted,
-      "\nupvote?: ",
-      userAlreadyVoted?.value === VoteAction.Up,
-      "\ndownvote?: ",
-      userAlreadyVoted?.value === VoteAction.Down,
-      "\ncurrent value matches prev vote: ",
-      userAlreadyVoted?.value == value,
-      "\ncurrentPostVotes",
-      currentPostVotes,
-      "overall expression upvote",
-      userAlreadyVoted &&
-        userAlreadyVoted.value === VoteAction.Up &&
-        userAlreadyVoted.value == value,
-      "overall expression downvote",
-      userAlreadyVoted &&
-        userAlreadyVoted.value === VoteAction.Down &&
-        userAlreadyVoted.value == value
-    );
+    // console.log(
+    //   "\nuservote: ",
+    //   userAlreadyVoted,
+    //   "\nupvote?: ",
+    //   userAlreadyVoted?.value === VoteAction.Up,
+    //   "\ndownvote?: ",
+    //   userAlreadyVoted?.value === VoteAction.Down,
+    //   "\ncurrent value matches prev vote: ",
+    //   userAlreadyVoted?.value == value,
+    //   "\ncurrentPostVotes",
+    //   currentPostVotes,
+    //   "overall expression upvote",
+    //   userAlreadyVoted &&
+    //     userAlreadyVoted.value === VoteAction.Up &&
+    //     userAlreadyVoted.value == value,
+    //   "overall expression downvote",
+    //   userAlreadyVoted &&
+    //     userAlreadyVoted.value === VoteAction.Down &&
+    //     userAlreadyVoted.value == value
+    // );
     return true;
   }
 
@@ -116,19 +108,4 @@ export class VoteResolver {
     const response = await Vote.findOne({ where: { postId, userId } });
     return response || null;
   }
-
-  // @Mutation(() => Vote, { nullable: true })
-  // @UseMiddleware(isAuth)
-  // async deleteVote(
-  //   @Arg("postId", () => Int) postId: number,
-  //   @Ctx() { req }: Context
-  // ) {
-  //   const { userId } = req.session;
-
-  //   const currentPostVotes: number | undefined = await Post.findOne({
-  //     where: { id: postId },
-  //   }).then((x) => x?.votes);
-  //   await Post.update(postId, { votes: currentPostVotes + vote });
-  //   await Vote.update({ userId, postId }, { value: vote });
-  // }
 }

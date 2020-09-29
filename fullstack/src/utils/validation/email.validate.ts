@@ -1,10 +1,10 @@
-import { emailField } from "./field.names";
+import { EMAIL_FIELD } from "../field.names";
 
 export const validateEmail = (email: string) => {
   if (!email.match(/\w+@\w+\.\w+/)) {
     return [
       {
-        field: emailField,
+        field: EMAIL_FIELD,
         message: "That is not a valid email address",
       },
     ];

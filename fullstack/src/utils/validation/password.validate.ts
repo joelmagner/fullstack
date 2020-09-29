@@ -1,4 +1,4 @@
-import { passwordField } from "./field.names";
+import { PASSWORD_FIELD } from "../field.names";
 
 export const validatePassword = (
   password: string,
@@ -7,7 +7,7 @@ export const validatePassword = (
   if (password.length < 4) {
     return [
       {
-        field: optionalPasswordField || passwordField,
+        field: optionalPasswordField || PASSWORD_FIELD,
         message: "Length of password must be at least 4 characters",
       },
     ];

@@ -14,6 +14,7 @@ import {
   LoginMutation,
   RegisterMutation,
   VoteMutationVariables,
+  DeletePostMutationVariables,
 } from "../generated/graphql";
 import { updateQuery } from "./updateQuery";
 import gql from "graphql-tag";
@@ -92,7 +93,13 @@ export const urqlClient = (ssrExchange: any, ctx: any) => {
         },
         updates: {
           Mutation: {
-            vote: (_result, args, cache, info) => {
+            deletePost: (_result, args, cache, _info) => {
+              cache.invalidate({
+                __typename: "Post",
+                id: (args as DeletePostMutationVariables).id,
+              });
+            },
+            vote: (result, args, cache, _info) => {
               const { postId, value } = args as VoteMutationVariables;
               const data = cache.readFragment(
                 gql`
@@ -106,44 +113,25 @@ export const urqlClient = (ssrExchange: any, ctx: any) => {
               );
 
               if (data) {
-                console.log("votestatus", data.voteStatus, "val", value);
-
-                //if user is reVoting on the same value, remove it.
-                // const checkUnVote = (votePassed: boolean) => {
-                //   return votePassed ? value : value === -1 ? 1 : -1;
-                // };
-                // const newPoints =
-                //   (data.votes as number) + checkUnVote(result.vote as boolean);
-
-                const hasAlreadyVoted = (storedValue: number) => {
+                const votingHandler = (storedValue: number) => {
                   const isNull = () => storedValue === null;
                   const reVotingSame = () => storedValue === value;
                   const changingVote = () => storedValue !== value;
 
-                  console.log("VOTE STATUS", _result.vote);
-
                   if (isNull()) {
-                    console.log("isNull");
                     return value;
-                  }
-
-                  if (reVotingSame()) {
-                    return _result.vote ? value : value === -1 ? 1 : -1;
-                  }
-
-                  if (changingVote()) {
-                    console.log("changingVote", _result.vote);
-                    return !_result.vote ? 1 * value : 2 * value;
+                  } else if (reVotingSame()) {
+                    return result.vote ? value : value === -1 ? 1 : -1;
+                  } else if (changingVote()) {
+                    return !result.vote ? 1 * value : 2 * value;
                   }
 
                   return value;
-
-                  //return votePassed ? value : value === -1 ? 1 : -1;
                 };
 
                 const newPoints =
                   (data.votes as number) +
-                  hasAlreadyVoted(data.voteStatus as number);
+                  votingHandler(data.voteStatus as number);
                 cache.writeFragment(
                   gql`
                     fragment __ on Post {

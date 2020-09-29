@@ -1,4 +1,6 @@
-export const usernameOrEmailField = "usernameOrEmail";
-export const usernameField = "username";
-export const passwordField = "password";
-export const emailField = "email";
+export const USERNAME_OR_EMAIL_FIELD = "usernameOrEmail";
+export const USERNAME_FIELD = "username";
+export const PASSWORD_FIELD = "password";
+export const EMAIL_FIELD = "email";
+export const POST_TEXT_FIELD = "text";
+export const POST_TITLE_FIELD = "title";
