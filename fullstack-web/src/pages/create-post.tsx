@@ -27,11 +27,10 @@ const CreatePost: React.FC<CreatePostProps> = ({}) => {
         initialValues={{ title: "", text: "" }}
         onSubmit={async (values, { setErrors }) => {
           const response = await createPost({ input: values });
-          console.log("skapa post", response);
           if (response.data?.createPost?.errors) {
             setErrors(toErrorMap(response.data.createPost.errors));
           } else if (response.data?.createPost?.post) {
-            router.push("/");
+            router.back();
           }
         }}
       >

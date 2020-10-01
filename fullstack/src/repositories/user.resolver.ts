@@ -7,22 +7,23 @@ import {
   FieldResolver,
   Root,
 } from "type-graphql";
-import { Context } from "../types";
+import { Context } from "../utils/types/Context";
 import { User } from "../entities/User";
 import argon2 from "argon2";
 import {
   COOKIE_NAME,
   FORGOT_PASSWORD_PREFIX,
   REQUEST_ORIGIN_URL_CORS,
-} from "../constants";
-import { UsernamePasswordInput } from "./UsernamePasswordInput";
+} from "../utils/constants";
+import { UsernamePasswordInput } from "./inputTypes/UsernamePasswordInput";
 import { PASSWORD_FIELD, USERNAME_OR_EMAIL_FIELD } from "../utils/field.names";
 import { sendEmail } from "../utils/email";
 import { v4 } from "uuid";
-import { UserResponse } from "./UserResponse";
 import { validatePassword } from "../utils/validation/password.validate";
 import { validateToken } from "../utils/validation/token.validate";
 import { validateRegister } from "../utils/validation/register.validate";
+import { UserResponse } from "./responses/UserResponse";
+
 @Resolver(User)
 export class UserResolver {
   @FieldResolver(() => String)

@@ -10,7 +10,7 @@ import {
 import { Post } from "../entities/Post";
 import { Vote } from "../entities/Vote";
 import { isAuth } from "../middleware/isAuth";
-import { Context } from "../types";
+import { Context } from "../utils/types/Context";
 
 enum VoteAction {
   Up = 1,

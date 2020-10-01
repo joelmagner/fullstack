@@ -52,7 +52,7 @@ const EditPost: React.FC<EditPostProps> = ({}) => {
             if (response.data?.updatePost?.errors) {
               setErrors(toErrorMap(response.data.updatePost.errors));
             } else if (response.data?.updatePost?.post) {
-              router.push("/");
+              router.back();
             }
           }}
         >

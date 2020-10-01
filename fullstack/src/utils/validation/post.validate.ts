@@ -1,6 +1,6 @@
-import { NOT_AUTHORIZED } from "../../constants";
 import { Post } from "../../entities/Post";
-import { PostInput } from "../../resolvers/post";
+import { PostInput } from "../../repositories/post.resolver";
+import { NOT_AUTHORIZED } from "../constants";
 
 export const validatePost = (userId: number, input: PostInput, post?: Post) => {
   if (input.title.length <= 5) {

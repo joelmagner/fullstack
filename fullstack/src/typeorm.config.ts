@@ -1,7 +1,7 @@
-import { __prod__ } from "./constants";
 import { Post } from "./entities/Post";
 import { User } from "./entities/User";
 import path from "path";
+import { __prod__ } from "./utils/constants";
 
 export default {
   migrations: {

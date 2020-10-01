@@ -1,21 +1,25 @@
 import "reflect-metadata";
 
-import { COOKIE_NAME, REQUEST_ORIGIN_URL_CORS, __prod__ } from "./constants";
+import {
+  COOKIE_NAME,
+  REQUEST_ORIGIN_URL_CORS,
+  __prod__,
+} from "./utils/constants";
 import express from "express";
 import { ApolloServer } from "apollo-server-express";
 import { buildSchema } from "type-graphql";
-import { PostResolver } from "./resolvers/post";
-import { UserResolver } from "./resolvers/user";
 import Redis from "ioredis";
 import session from "express-session";
 import connectRedis from "connect-redis";
 import { Context } from "apollo-server-core";
 import cors from "cors";
 import { createConnection } from "typeorm";
+import { PostResolver } from "./repositories/post.resolver";
 import { Post } from "./entities/Post";
 import { User } from "./entities/User";
 import { Vote } from "./entities/Vote";
-import { VoteResolver } from "./resolvers/vote";
+import { UserResolver } from "./repositories/user.resolver";
+import { VoteResolver } from "./repositories/vote.resolver";
 
 const main = async () => {
   await createConnection({
@@ -69,7 +73,7 @@ const main = async () => {
   }); // create graphql endpoint on express
 
   app.listen(4000, () => {
-    console.log("Server started on http://localhost:4000");
+    console.log("✅ Server started on http://localhost:4000");
   });
 };
 

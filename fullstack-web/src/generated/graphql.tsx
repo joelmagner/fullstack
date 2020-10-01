@@ -10,15 +10,22 @@ export type Scalars = {
   Boolean: boolean;
   Int: number;
   Float: number;
+  /** The `Upload` scalar type represents a file upload. */
+  Upload: any;
 };
 
 export type Query = {
   __typename?: 'Query';
+  getPostVotes?: Maybe<Vote>;
   posts: PaginatedPosts;
   post?: Maybe<Post>;
   me?: Maybe<User>;
   getUsers: Array<User>;
-  getPostVotes?: Maybe<Vote>;
+};
+
+
+export type QueryGetPostVotesArgs = {
+  postId: Scalars['Int'];
 };
 
 
@@ -32,15 +39,22 @@ export type QueryPostArgs = {
   id: Scalars['Int'];
 };
 
-
-export type QueryGetPostVotesArgs = {
-  postId: Scalars['Int'];
+export type Vote = {
+  __typename?: 'Vote';
+  userId: Scalars['Float'];
+  postId: Scalars['Float'];
+  value: Scalars['Float'];
+  user: User;
+  post?: Maybe<Post>;
 };
 
-export type PaginatedPosts = {
-  __typename?: 'PaginatedPosts';
-  posts: Array<Post>;
-  hasMore: Scalars['Boolean'];
+export type User = {
+  __typename?: 'User';
+  id: Scalars['Float'];
+  username: Scalars['String'];
+  email: Scalars['String'];
+  createdAt: Scalars['String'];
+  updatedAt: Scalars['String'];
 };
 
 export type Post = {
@@ -54,29 +68,19 @@ export type Post = {
   creator: User;
   createdAt: Scalars['String'];
   updatedAt: Scalars['String'];
+  attachment?: Maybe<Scalars['String']>;
   textSnippet: Scalars['String'];
 };
 
-export type User = {
-  __typename?: 'User';
-  id: Scalars['Float'];
-  username: Scalars['String'];
-  email: Scalars['String'];
-  createdAt: Scalars['String'];
-  updatedAt: Scalars['String'];
-};
-
-export type Vote = {
-  __typename?: 'Vote';
-  userId: Scalars['Float'];
-  postId: Scalars['Float'];
-  value: Scalars['Float'];
-  user: User;
-  post?: Maybe<Post>;
+export type PaginatedPosts = {
+  __typename?: 'PaginatedPosts';
+  posts: Array<Post>;
+  hasMore: Scalars['Boolean'];
 };
 
 export type Mutation = {
   __typename?: 'Mutation';
+  vote: Scalars['Boolean'];
   createPost?: Maybe<PostResponse>;
   updatePost?: Maybe<PostResponse>;
   deletePost: Scalars['Boolean'];
@@ -86,7 +90,13 @@ export type Mutation = {
   login: UserResponse;
   deleteUser: Scalars['Boolean'];
   logout: Scalars['Boolean'];
-  vote: Scalars['Boolean'];
+  uploadProfilePicture: Scalars['Boolean'];
+};
+
+
+export type MutationVoteArgs = {
+  value: Scalars['Int'];
+  postId: Scalars['Int'];
 };
 
 
@@ -133,9 +143,8 @@ export type MutationDeleteUserArgs = {
 };
 
 
-export type MutationVoteArgs = {
-  value: Scalars['Int'];
-  postId: Scalars['Int'];
+export type MutationUploadProfilePictureArgs = {
+  picture: Scalars['Upload'];
 };
 
 export type PostResponse = {
@@ -166,6 +175,7 @@ export type UsernamePasswordInput = {
   username: Scalars['String'];
   password: Scalars['String'];
 };
+
 
 export type ErrorFragmentFragment = (
   { __typename?: 'FieldError' }
@@ -272,6 +282,16 @@ export type LogoutMutation = (
   & Pick<Mutation, 'logout'>
 );
 
+export type UploadProfilePictureMutationVariables = Exact<{
+  picture: Scalars['Upload'];
+}>;
+
+
+export type UploadProfilePictureMutation = (
+  { __typename?: 'Mutation' }
+  & Pick<Mutation, 'uploadProfilePicture'>
+);
+
 export type RegisterMutationVariables = Exact<{
   options: UsernamePasswordInput;
 }>;
@@ -297,7 +317,7 @@ export type UpdatePostMutation = (
     { __typename?: 'PostResponse' }
     & { post?: Maybe<(
       { __typename?: 'Post' }
-      & Pick<Post, 'title' | 'text' | 'updatedAt' | 'createdAt' | 'textSnippet'>
+      & Pick<Post, 'id' | 'title' | 'text' | 'updatedAt' | 'createdAt' | 'textSnippet'>
     )>, errors?: Maybe<Array<(
       { __typename?: 'FieldError' }
       & Pick<FieldError, 'field' | 'message'>
@@ -485,6 +505,15 @@ export const LogoutDocument = gql`
 export function useLogoutMutation() {
   return Urql.useMutation<LogoutMutation, LogoutMutationVariables>(LogoutDocument);
 };
+export const UploadProfilePictureDocument = gql`
+    mutation UploadProfilePicture($picture: Upload!) {
+  uploadProfilePicture(picture: $picture)
+}
+    `;
+
+export function useUploadProfilePictureMutation() {
+  return Urql.useMutation<UploadProfilePictureMutation, UploadProfilePictureMutationVariables>(UploadProfilePictureDocument);
+};
 export const RegisterDocument = gql`
     mutation Register($options: UsernamePasswordInput!) {
   register(options: $options) {
@@ -500,6 +529,7 @@ export const UpdatePostDocument = gql`
     mutation UpdatePost($id: Int!, $input: PostInput!) {
   updatePost(id: $id, input: $input) {
     post {
+      id
       title
       text
       updatedAt

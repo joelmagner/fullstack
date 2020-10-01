@@ -143,7 +143,13 @@ export const NavBar: React.FC<NavBarProps> = ({}) => {
               <MenuDivider />
               <MenuItem>
                 <NextLink href="/">
-                  <Link onClick={() => logout()} isExternal={logoutFetching}>
+                  <Link
+                    onClick={async () => {
+                      await logout();
+                      router.reload();
+                    }}
+                    isExternal={logoutFetching}
+                  >
                     <Icon name="external-link" mr={2}></Icon> Logout
                   </Link>
                 </NextLink>

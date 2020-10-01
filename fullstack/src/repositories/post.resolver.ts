@@ -13,13 +13,13 @@ import {
   UseMiddleware,
 } from "type-graphql";
 import { getConnection, LessThan } from "typeorm";
-import { NOT_AUTHORIZED } from "../constants";
 import { Post } from "../entities/Post";
 import { Vote } from "../entities/Vote";
 import { isAuth } from "../middleware/isAuth";
-import { Context } from "../types";
+import { NOT_AUTHORIZED } from "../utils/constants";
+import { Context } from "../utils/types/Context";
 import { validatePost } from "../utils/validation/post.validate";
-import { PostResponse } from "./PostResponse";
+import { PostResponse } from "./responses/PostResponse";
 
 @InputType()
 export class PostInput {

@@ -1,6 +1,6 @@
-import { Context } from "../types";
+import { Context } from "../utils/types/Context";
 import { MiddlewareFn } from "type-graphql";
-import { NOT_AUTHORIZED } from "../constants";
+import { NOT_AUTHORIZED } from "../utils/constants";
 
 // Runs before resolver
 // Used after Mutation/Query decorator

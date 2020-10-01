@@ -1,5 +1,5 @@
 import { User } from "../../entities/User";
-import { UsernamePasswordInput } from "../../resolvers/UsernamePasswordInput";
+import { UsernamePasswordInput } from "../../repositories/inputTypes/UsernamePasswordInput";
 import { USERNAME_FIELD } from "../field.names";
 import { validateEmail } from "./email.validate";
 import { validatePassword } from "./password.validate";
