@@ -16,16 +16,11 @@ export type Scalars = {
 
 export type Query = {
   __typename?: 'Query';
-  getPostVotes?: Maybe<Vote>;
   posts: PaginatedPosts;
   post?: Maybe<Post>;
   me?: Maybe<User>;
   getUsers: Array<User>;
-};
-
-
-export type QueryGetPostVotesArgs = {
-  postId: Scalars['Int'];
+  getPostVotes?: Maybe<Vote>;
 };
 
 
@@ -39,22 +34,15 @@ export type QueryPostArgs = {
   id: Scalars['Int'];
 };
 
-export type Vote = {
-  __typename?: 'Vote';
-  userId: Scalars['Float'];
-  postId: Scalars['Float'];
-  value: Scalars['Float'];
-  user: User;
-  post?: Maybe<Post>;
+
+export type QueryGetPostVotesArgs = {
+  postId: Scalars['Int'];
 };
 
-export type User = {
-  __typename?: 'User';
-  id: Scalars['Float'];
-  username: Scalars['String'];
-  email: Scalars['String'];
-  createdAt: Scalars['String'];
-  updatedAt: Scalars['String'];
+export type PaginatedPosts = {
+  __typename?: 'PaginatedPosts';
+  posts: Array<Post>;
+  hasMore: Scalars['Boolean'];
 };
 
 export type Post = {
@@ -68,19 +56,29 @@ export type Post = {
   creator: User;
   createdAt: Scalars['String'];
   updatedAt: Scalars['String'];
-  attachment?: Maybe<Scalars['String']>;
   textSnippet: Scalars['String'];
 };
 
-export type PaginatedPosts = {
-  __typename?: 'PaginatedPosts';
-  posts: Array<Post>;
-  hasMore: Scalars['Boolean'];
+export type User = {
+  __typename?: 'User';
+  id: Scalars['Float'];
+  username: Scalars['String'];
+  email: Scalars['String'];
+  createdAt: Scalars['String'];
+  updatedAt: Scalars['String'];
+};
+
+export type Vote = {
+  __typename?: 'Vote';
+  userId: Scalars['Float'];
+  postId: Scalars['Float'];
+  value: Scalars['Float'];
+  user: User;
+  post?: Maybe<Post>;
 };
 
 export type Mutation = {
   __typename?: 'Mutation';
-  vote: Scalars['Boolean'];
   createPost?: Maybe<PostResponse>;
   updatePost?: Maybe<PostResponse>;
   deletePost: Scalars['Boolean'];
@@ -90,13 +88,8 @@ export type Mutation = {
   login: UserResponse;
   deleteUser: Scalars['Boolean'];
   logout: Scalars['Boolean'];
-  uploadProfilePicture: Scalars['Boolean'];
-};
-
-
-export type MutationVoteArgs = {
-  value: Scalars['Int'];
-  postId: Scalars['Int'];
+  vote: Scalars['Boolean'];
+  addProfilePicture: Scalars['Boolean'];
 };
 
 
@@ -143,8 +136,14 @@ export type MutationDeleteUserArgs = {
 };
 
 
-export type MutationUploadProfilePictureArgs = {
-  picture: Scalars['Upload'];
+export type MutationVoteArgs = {
+  value: Scalars['Int'];
+  postId: Scalars['Int'];
+};
+
+
+export type MutationAddProfilePictureArgs = {
+  file: Scalars['Upload'];
 };
 
 export type PostResponse = {
@@ -282,14 +281,14 @@ export type LogoutMutation = (
   & Pick<Mutation, 'logout'>
 );
 
-export type UploadProfilePictureMutationVariables = Exact<{
-  picture: Scalars['Upload'];
+export type AddProfilePictureMutationVariables = Exact<{
+  file: Scalars['Upload'];
 }>;
 
 
-export type UploadProfilePictureMutation = (
+export type AddProfilePictureMutation = (
   { __typename?: 'Mutation' }
-  & Pick<Mutation, 'uploadProfilePicture'>
+  & Pick<Mutation, 'addProfilePicture'>
 );
 
 export type RegisterMutationVariables = Exact<{
@@ -505,14 +504,14 @@ export const LogoutDocument = gql`
 export function useLogoutMutation() {
   return Urql.useMutation<LogoutMutation, LogoutMutationVariables>(LogoutDocument);
 };
-export const UploadProfilePictureDocument = gql`
-    mutation UploadProfilePicture($picture: Upload!) {
-  uploadProfilePicture(picture: $picture)
+export const AddProfilePictureDocument = gql`
+    mutation AddProfilePicture($file: Upload!) {
+  addProfilePicture(file: $file)
 }
     `;
 
-export function useUploadProfilePictureMutation() {
-  return Urql.useMutation<UploadProfilePictureMutation, UploadProfilePictureMutationVariables>(UploadProfilePictureDocument);
+export function useAddProfilePictureMutation() {
+  return Urql.useMutation<AddProfilePictureMutation, AddProfilePictureMutationVariables>(AddProfilePictureDocument);
 };
 export const RegisterDocument = gql`
     mutation Register($options: UsernamePasswordInput!) {

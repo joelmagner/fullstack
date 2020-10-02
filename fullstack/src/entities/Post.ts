@@ -52,8 +52,4 @@ export class Post extends BaseEntity {
   @Field(() => String)
   @UpdateDateColumn()
   updatedAt: Date;
-
-  @Field(() => String, { nullable: true })
-  @Column({ default: null })
-  attachment?: String;
 }

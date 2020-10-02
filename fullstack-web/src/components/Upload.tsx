@@ -1,13 +1,20 @@
-// import { withUrqlClient } from "next-urql";
-// import React from "react";
-// import Dropzone from "react-dropzone";
-// import { useUploadProfilePictureMutation } from "../generated/graphql";
-// import { urqlClient } from "../utils/urqlClient";
+import React from "react";
+import { useAddProfilePictureMutation } from "../generated/graphql";
 
-// interface UploadProps {}
+interface UploadProps {}
 
-// export const Upload: React.FC<UploadProps> = ({}) => {
-//   const [, uploadProfilePic] = useUploadProfilePictureMutation();
+export const Upload: React.FC<UploadProps> = ({}) => {
+  const [, addProfilePicture] = useAddProfilePictureMutation();
 
-//   return <Dropzone onDrop={(file) => uploadProfilePic({ picture: file })} />;
-// };
+  const handleChange = React.useCallback(
+    ({
+      target: {
+        validity,
+        files: [file],
+      },
+    }) => validity.valid && addProfilePicture({ file }),
+    [addProfilePicture]
+  );
+  //@todo create Formik form with error-handling and filetype restrictions, check upload.resolver.ts in backend.
+  return <input type="file" required onChange={handleChange} />;
+};

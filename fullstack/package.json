@@ -11,6 +11,9 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "resolutions": {
+    "fs-capacitor": "3.0.0"
+  },
   "devDependencies": {
     "@types/connect-redis": "0.0.14",
     "@types/cors": "^2.8.7",
@@ -25,7 +28,8 @@
     "typescript": "^4.0.2"
   },
   "dependencies": {
-    "apollo-server-express": "^2.17.0",
+    "apollo-server": "^2.18.1",
+    "apollo-server-express": "^2.18.1",
     "argon2": "^0.27.0",
     "class-validator": "^0.12.2",
     "connect-redis": "^5.0.0",
@@ -33,6 +37,7 @@
     "dataloader": "^2.0.0",
     "express": "^4.17.1",
     "express-session": "^1.17.1",
+    "fs-capacitor": "^3.0.0",
     "graphql": "^15.3.0",
     "graphql-upload": "^11.0.0",
     "ioredis": "^4.17.3",
@@ -45,12 +50,5 @@
     "typeorm": "^0.2.26",
     "uuid": "^8.3.0",
     "webpack": "^4.44.1"
-  },
-  "mikro-orm": {
-    "useTsNode": true,
-    "configPaths": [
-      "./src/mikro-orm.config.ts",
-      "./dist/mikro-orm.config.js"
-    ]
   }
 }

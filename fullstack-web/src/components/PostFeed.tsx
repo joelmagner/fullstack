@@ -14,6 +14,7 @@ import { VoteSection } from "./VoteSection";
 import NextLink from "next/link";
 import { usePostsQuery } from "../generated/graphql";
 import { PostActions } from "./PostActions";
+import { Upload } from "./Upload";
 interface PostFeedProps {}
 
 export const PostFeed: React.FC<PostFeedProps> = ({}) => {
@@ -52,6 +53,7 @@ export const PostFeed: React.FC<PostFeedProps> = ({}) => {
         </Layout>
       ) : (
         <Stack spacing={8}>
+          <Upload />
           {data!.posts.posts.map((p) =>
             !p ? null : (
               <Flex key={p.id} p={5} shadow="md" borderWidth="1px">

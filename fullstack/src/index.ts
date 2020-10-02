@@ -20,6 +20,8 @@ import { User } from "./entities/User";
 import { Vote } from "./entities/Vote";
 import { UserResolver } from "./repositories/user.resolver";
 import { VoteResolver } from "./repositories/vote.resolver";
+import { UploadResolver } from "./repositories/upload.resolver";
+import { Upload } from "./entities/Upload";
 
 const main = async () => {
   await createConnection({
@@ -29,7 +31,7 @@ const main = async () => {
     password: "joel",
     logging: !__prod__,
     synchronize: !__prod__,
-    entities: [Post, User, Vote],
+    entities: [Post, User, Vote, Upload],
   });
 
   const app = express();
@@ -61,9 +63,12 @@ const main = async () => {
   );
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
-      resolvers: [PostResolver, UserResolver, VoteResolver],
+      resolvers: [PostResolver, UserResolver, VoteResolver, UploadResolver],
       validate: false,
     }),
+    debug: true,
+    uploads: true,
+
     context: ({ req, res }): Context => ({ req, res, redis }),
   });
 
@@ -78,3 +83,5 @@ const main = async () => {
 };
 
 main().catch((err) => console.log(err));
+
+//uuid

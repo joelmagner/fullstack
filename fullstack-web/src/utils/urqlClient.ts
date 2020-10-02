@@ -1,4 +1,5 @@
 import { cacheExchange, Resolver, Cache } from "@urql/exchange-graphcache";
+import { multipartFetchExchange } from "@urql/exchange-multipart-fetch";
 import Router from "next/router";
 import {
   dedupExchange,
@@ -93,6 +94,7 @@ export const urqlClient = (ssrExchange: any, ctx: any) => {
     },
     exchanges: [
       dedupExchange,
+      multipartFetchExchange,
       cacheExchange({
         keys: {
           PaginatedPosts: () => null,
