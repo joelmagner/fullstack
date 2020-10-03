@@ -1,0 +1,5 @@
+query GetProfilePicture {
+  getProfilePicture {
+    filename
+  }
+}

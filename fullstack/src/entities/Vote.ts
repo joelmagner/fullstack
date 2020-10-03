@@ -11,7 +11,7 @@ import { User } from "./User";
 @Entity()
 export class Vote extends BaseEntity {
   @Field()
-  @PrimaryColumn()
+  @PrimaryColumn({ type: "int" })
   userId: number;
 
   @Field()

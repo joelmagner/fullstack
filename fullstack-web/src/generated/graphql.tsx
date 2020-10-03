@@ -21,6 +21,8 @@ export type Query = {
   me?: Maybe<User>;
   getUsers: Array<User>;
   getPostVotes?: Maybe<Vote>;
+  getAttachments?: Maybe<Array<Attachment>>;
+  getProfilePicture?: Maybe<Attachment>;
 };
 
 
@@ -77,6 +79,18 @@ export type Vote = {
   post?: Maybe<Post>;
 };
 
+export type Attachment = {
+  __typename?: 'Attachment';
+  id: Scalars['Float'];
+  user: User;
+  filename: Scalars['String'];
+  mimetype: Scalars['String'];
+  profilePicture: Scalars['Boolean'];
+  encoding: Scalars['String'];
+  createdAt: Scalars['String'];
+  updatedAt: Scalars['String'];
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   createPost?: Maybe<PostResponse>;
@@ -89,7 +103,7 @@ export type Mutation = {
   deleteUser: Scalars['Boolean'];
   logout: Scalars['Boolean'];
   vote: Scalars['Boolean'];
-  addProfilePicture: Scalars['Boolean'];
+  addProfilePicture: AttachmentResponse;
 };
 
 
@@ -173,6 +187,12 @@ export type UsernamePasswordInput = {
   email: Scalars['String'];
   username: Scalars['String'];
   password: Scalars['String'];
+};
+
+export type AttachmentResponse = {
+  __typename?: 'AttachmentResponse';
+  errors?: Maybe<Array<FieldError>>;
+  attachment?: Maybe<Attachment>;
 };
 
 
@@ -288,7 +308,20 @@ export type AddProfilePictureMutationVariables = Exact<{
 
 export type AddProfilePictureMutation = (
   { __typename?: 'Mutation' }
-  & Pick<Mutation, 'addProfilePicture'>
+  & { addProfilePicture: (
+    { __typename?: 'AttachmentResponse' }
+    & { errors?: Maybe<Array<(
+      { __typename?: 'FieldError' }
+      & Pick<FieldError, 'field' | 'message'>
+    )>>, attachment?: Maybe<(
+      { __typename?: 'Attachment' }
+      & Pick<Attachment, 'id' | 'filename' | 'mimetype' | 'encoding'>
+      & { user: (
+        { __typename?: 'User' }
+        & Pick<User, 'username'>
+      ) }
+    )> }
+  ) }
 );
 
 export type RegisterMutationVariables = Exact<{
@@ -392,6 +425,17 @@ export type PostsQuery = (
       & PostFragmentFragment
     )> }
   ) }
+);
+
+export type GetProfilePictureQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetProfilePictureQuery = (
+  { __typename?: 'Query' }
+  & { getProfilePicture?: Maybe<(
+    { __typename?: 'Attachment' }
+    & Pick<Attachment, 'filename'>
+  )> }
 );
 
 export const PostFragmentFragmentDoc = gql`
@@ -506,7 +550,21 @@ export function useLogoutMutation() {
 };
 export const AddProfilePictureDocument = gql`
     mutation AddProfilePicture($file: Upload!) {
-  addProfilePicture(file: $file)
+  addProfilePicture(file: $file) {
+    errors {
+      field
+      message
+    }
+    attachment {
+      id
+      user {
+        username
+      }
+      filename
+      mimetype
+      encoding
+    }
+  }
 }
     `;
 
@@ -613,4 +671,15 @@ export const PostsDocument = gql`
 
 export function usePostsQuery(options: Omit<Urql.UseQueryArgs<PostsQueryVariables>, 'query'> = {}) {
   return Urql.useQuery<PostsQuery>({ query: PostsDocument, ...options });
+};
+export const GetProfilePictureDocument = gql`
+    query GetProfilePicture {
+  getProfilePicture {
+    filename
+  }
+}
+    `;
+
+export function useGetProfilePictureQuery(options: Omit<Urql.UseQueryArgs<GetProfilePictureQueryVariables>, 'query'> = {}) {
+  return Urql.useQuery<GetProfilePictureQuery>({ query: GetProfilePictureDocument, ...options });
 };

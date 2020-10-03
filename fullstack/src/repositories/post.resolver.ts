@@ -19,7 +19,7 @@ import { isAuth } from "../middleware/isAuth";
 import { NOT_AUTHORIZED } from "../utils/constants";
 import { Context } from "../utils/types/Context";
 import { validatePost } from "../utils/validation/post.validate";
-import { PostResponse } from "./responses/PostResponse";
+import { PostResponse } from "./responses/post.response";
 
 @InputType()
 export class PostInput {

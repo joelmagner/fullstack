@@ -1,4 +1,5 @@
 import {
+  Avatar,
   Box,
   Button,
   DarkMode,
@@ -15,11 +16,17 @@ import {
   MenuItem,
   MenuList,
   Switch,
+  Text,
   theme,
 } from "@chakra-ui/core";
 import React from "react";
 import NextLink from "next/link";
-import { useLogoutMutation, useMeQuery } from "../generated/graphql";
+import {
+  AddProfilePictureDocument,
+  useGetProfilePictureQuery,
+  useLogoutMutation,
+  useMeQuery,
+} from "../generated/graphql";
 import { isServer } from "../utils/isServer";
 import { useRouter } from "next/router";
 
@@ -46,8 +53,18 @@ export const NavBar: React.FC<NavBarProps> = ({}) => {
   });
   const router = useRouter();
   const [{ fetching: logoutFetching }, logout] = useLogoutMutation();
+  const [{ data: profileData, fetching }] = useGetProfilePictureQuery({
+    requestPolicy: "cache-first",
+  });
   let body = null;
   let username = null;
+  let avatar = null;
+  let profilePicture = null;
+
+  if (profileData?.getProfilePicture) {
+    profilePicture = profileData?.getProfilePicture.filename;
+  }
+
   if (!data?.me) {
     // validating
     body = (
@@ -87,6 +104,25 @@ export const NavBar: React.FC<NavBarProps> = ({}) => {
     );
     // logged in
   }
+
+  if (profileData?.getProfilePicture?.filename && data?.me) {
+    avatar = (
+      <Avatar
+        size="sm"
+        name={data.me.username}
+        background="transparent"
+        src={
+          profilePicture != null
+            ? `http://localhost:4000/attachments/profile/${profilePicture}`
+            : undefined
+        }
+        mr={4}
+      />
+    );
+  } else if (data?.me) {
+    avatar = <Avatar size="sm" name={data.me.username} mr={4} />;
+  }
+
   return (
     <DarkMode>
       <Flex
@@ -117,9 +153,13 @@ export const NavBar: React.FC<NavBarProps> = ({}) => {
         </Flex>
         {username ? (
           <Menu>
-            <MenuButton as={Button}>
-              <Icon name="settings" mr={3}></Icon>
-              {username}
+            <MenuButton
+              as={Button}
+              alignContent="center"
+              verticalAlign="center"
+            >
+              {avatar}
+              <Text lineHeight="1">{username}</Text>
             </MenuButton>
             <MenuList>
               <MenuGroup title="Profile">

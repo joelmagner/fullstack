@@ -1,3 +1,17 @@
 mutation AddProfilePicture($file: Upload!) {
-  addProfilePicture(file: $file)
+  addProfilePicture(file: $file) {
+    errors {
+      field
+      message
+    }
+    attachment {
+      id
+      user {
+        username
+      }
+      filename
+      mimetype
+      encoding
+    }
+  }
 }

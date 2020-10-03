@@ -20,8 +20,9 @@ import { User } from "./entities/User";
 import { Vote } from "./entities/Vote";
 import { UserResolver } from "./repositories/user.resolver";
 import { VoteResolver } from "./repositories/vote.resolver";
-import { UploadResolver } from "./repositories/upload.resolver";
-import { Upload } from "./entities/Upload";
+import { AttachmentResolver } from "./repositories/attachment.resolver";
+import { Attachment } from "./entities/Attachment";
+import path from "path";
 
 const main = async () => {
   await createConnection({
@@ -31,7 +32,7 @@ const main = async () => {
     password: "joel",
     logging: !__prod__,
     synchronize: !__prod__,
-    entities: [Post, User, Vote, Upload],
+    entities: [Post, User, Vote, Attachment],
   });
 
   const app = express();
@@ -43,6 +44,8 @@ const main = async () => {
       credentials: true,
     })
   );
+  console.log("fil: ", path.join(__dirname, "/../attachments/profile/"));
+  app.use(express.static(__dirname + "/../"));
   app.use(
     session({
       name: COOKIE_NAME,
@@ -63,7 +66,7 @@ const main = async () => {
   );
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
-      resolvers: [PostResolver, UserResolver, VoteResolver, UploadResolver],
+      resolvers: [PostResolver, UserResolver, VoteResolver, AttachmentResolver],
       validate: false,
     }),
     debug: true,

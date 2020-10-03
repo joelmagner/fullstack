@@ -8,6 +8,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
+import { Attachment } from "./Attachment";
 import { Post } from "./Post";
 import { Vote } from "./Vote";
 @ObjectType()
@@ -30,6 +31,9 @@ export class User extends BaseEntity {
 
   @OneToMany(() => Vote, (vote) => vote.user)
   votes: Vote[];
+
+  @OneToMany(() => Attachment, (attachment) => attachment.user)
+  attachments: Attachment[];
 
   @Column()
   password!: string; //Wont be exposed to the user, will be hashed using Argon2

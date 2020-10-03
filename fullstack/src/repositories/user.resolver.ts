@@ -22,7 +22,7 @@ import { v4 } from "uuid";
 import { validatePassword } from "../utils/validation/password.validate";
 import { validateToken } from "../utils/validation/token.validate";
 import { validateRegister } from "../utils/validation/register.validate";
-import { UserResponse } from "./responses/UserResponse";
+import { UserResponse } from "./responses/user.response";
 
 @Resolver(User)
 export class UserResolver {

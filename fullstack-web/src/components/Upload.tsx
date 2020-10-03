@@ -16,5 +16,5 @@ export const Upload: React.FC<UploadProps> = ({}) => {
     [addProfilePicture]
   );
   //@todo create Formik form with error-handling and filetype restrictions, check upload.resolver.ts in backend.
-  return <input type="file" required onChange={handleChange} />;
+  return <input type="file" name="upload" required onChange={handleChange} />;
 };
