@@ -43,6 +43,12 @@ export class PostResolver {
   textSnippet(@Root() root: Post) {
     return root.text.length >= 50 ? root.text.slice(0, 50) + "..." : root.text;
   }
+  @FieldResolver(() => String)
+  titleSnippet(@Root() root: Post) {
+    return root.title.length >= 50
+      ? root.title.slice(0, 50) + "..."
+      : root.title;
+  }
 
   @Query(() => PaginatedPosts)
   async posts(
@@ -53,6 +59,7 @@ export class PostResolver {
     const realLimit = Math.min(50, limit);
     const morePostsExist = realLimit + 1; // to deal with pagination.
     // if we request limit + 1 and get that back, we know there's more items to be fetched in the future for the client.
+
     const { userId } = req.session;
     const getPosts = await Post.find({
       take: morePostsExist,
@@ -63,12 +70,7 @@ export class PostResolver {
               createdAt: LessThan(new Date(parseInt(cursor))),
             },
       order: { createdAt: "DESC" },
-      join: {
-        alias: "user",
-        innerJoinAndSelect: {
-          id: "user.creator",
-        },
-      },
+      relations: ["creator"],
     }).then(async (x) => {
       for (let i = 0; i < x.length; i++) {
         const vote = await Vote.findOne({ postId: x[i].id, userId });

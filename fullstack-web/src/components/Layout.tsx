@@ -1,8 +1,8 @@
 import { ITheme } from "@chakra-ui/core";
-import React from "react";
+import React, { createContext } from "react";
 import { NavBar } from "./NavBar";
 import { Wrapper, WrapperVariant } from "./Wrapper";
-
+import { SideBar } from "./SideBar";
 interface LayoutProps {
   variant?: WrapperVariant;
 }
@@ -22,11 +22,23 @@ const config = (theme: ITheme) => ({
   },
 });
 
+export const context = React.createContext<{
+  value: boolean;
+  changeValue: () => void;
+}>(undefined!);
+
 export const Layout: React.FC<LayoutProps> = ({ children, variant }) => {
+  const [value, setValue] = React.useState(false);
+  const changeValue = () => {
+    setValue(!value);
+  };
+
   return (
     <>
-      <NavBar />
-      <Wrapper variant={variant}>{children}</Wrapper>
+      <context.Provider value={{ value, changeValue }}>
+        <NavBar />
+        <Wrapper variant={variant}>{children}</Wrapper>
+      </context.Provider>
     </>
   );
 };

@@ -5,6 +5,7 @@ fragment PostFragment on Post {
   title
   votes
   textSnippet
+  titleSnippet
   voteStatus
   creator {
     id

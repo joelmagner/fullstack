@@ -59,6 +59,7 @@ export type Post = {
   createdAt: Scalars['String'];
   updatedAt: Scalars['String'];
   textSnippet: Scalars['String'];
+  titleSnippet: Scalars['String'];
 };
 
 export type User = {
@@ -85,17 +86,26 @@ export type Attachment = {
   user: User;
   filename: Scalars['String'];
   mimetype: Scalars['String'];
-  profilePicture: Scalars['Boolean'];
+  uploadType: UploadType;
   encoding: Scalars['String'];
   createdAt: Scalars['String'];
   updatedAt: Scalars['String'];
+  imagePathname: Scalars['String'];
 };
+
+/** Specifies the type of attached file */
+export enum UploadType {
+  Default = 'Default',
+  ProfilePicture = 'ProfilePicture',
+  ProfileBanner = 'ProfileBanner'
+}
 
 export type Mutation = {
   __typename?: 'Mutation';
   createPost?: Maybe<PostResponse>;
   updatePost?: Maybe<PostResponse>;
   deletePost: Scalars['Boolean'];
+  changeUsername: UserResponse;
   changePassword: UserResponse;
   forgotPassword: Scalars['Boolean'];
   register: UserResponse;
@@ -120,6 +130,11 @@ export type MutationUpdatePostArgs = {
 
 export type MutationDeletePostArgs = {
   id: Scalars['Int'];
+};
+
+
+export type MutationChangeUsernameArgs = {
+  newUsername: Scalars['String'];
 };
 
 
@@ -203,7 +218,7 @@ export type ErrorFragmentFragment = (
 
 export type PostFragmentFragment = (
   { __typename?: 'Post' }
-  & Pick<Post, 'id' | 'createdAt' | 'updatedAt' | 'title' | 'votes' | 'textSnippet' | 'voteStatus'>
+  & Pick<Post, 'id' | 'createdAt' | 'updatedAt' | 'title' | 'votes' | 'textSnippet' | 'titleSnippet' | 'voteStatus'>
   & { creator: (
     { __typename?: 'User' }
     & Pick<User, 'id' | 'username'>
@@ -237,6 +252,25 @@ export type ChangePasswordMutation = (
   & { changePassword: (
     { __typename?: 'UserResponse' }
     & UserResponseFragmentFragment
+  ) }
+);
+
+export type ChangeUsernameMutationVariables = Exact<{
+  newUsername: Scalars['String'];
+}>;
+
+
+export type ChangeUsernameMutation = (
+  { __typename?: 'Mutation' }
+  & { changeUsername: (
+    { __typename?: 'UserResponse' }
+    & { user?: Maybe<(
+      { __typename?: 'User' }
+      & Pick<User, 'id' | 'username'>
+    )>, errors?: Maybe<Array<(
+      { __typename?: 'FieldError' }
+      & Pick<FieldError, 'field' | 'message'>
+    )>> }
   ) }
 );
 
@@ -316,10 +350,6 @@ export type AddProfilePictureMutation = (
     )>>, attachment?: Maybe<(
       { __typename?: 'Attachment' }
       & Pick<Attachment, 'id' | 'filename' | 'mimetype' | 'encoding'>
-      & { user: (
-        { __typename?: 'User' }
-        & Pick<User, 'username'>
-      ) }
     )> }
   ) }
 );
@@ -434,7 +464,7 @@ export type GetProfilePictureQuery = (
   { __typename?: 'Query' }
   & { getProfilePicture?: Maybe<(
     { __typename?: 'Attachment' }
-    & Pick<Attachment, 'filename'>
+    & Pick<Attachment, 'id' | 'filename' | 'imagePathname'>
   )> }
 );
 
@@ -446,6 +476,7 @@ export const PostFragmentFragmentDoc = gql`
   title
   votes
   textSnippet
+  titleSnippet
   voteStatus
   creator {
     id
@@ -486,6 +517,24 @@ export const ChangePasswordDocument = gql`
 
 export function useChangePasswordMutation() {
   return Urql.useMutation<ChangePasswordMutation, ChangePasswordMutationVariables>(ChangePasswordDocument);
+};
+export const ChangeUsernameDocument = gql`
+    mutation ChangeUsername($newUsername: String!) {
+  changeUsername(newUsername: $newUsername) {
+    user {
+      id
+      username
+    }
+    errors {
+      field
+      message
+    }
+  }
+}
+    `;
+
+export function useChangeUsernameMutation() {
+  return Urql.useMutation<ChangeUsernameMutation, ChangeUsernameMutationVariables>(ChangeUsernameDocument);
 };
 export const CreatePostDocument = gql`
     mutation CreatePost($input: PostInput!) {
@@ -557,9 +606,6 @@ export const AddProfilePictureDocument = gql`
     }
     attachment {
       id
-      user {
-        username
-      }
       filename
       mimetype
       encoding
@@ -675,7 +721,9 @@ export function usePostsQuery(options: Omit<Urql.UseQueryArgs<PostsQueryVariable
 export const GetProfilePictureDocument = gql`
     query GetProfilePicture {
   getProfilePicture {
+    id
     filename
+    imagePathname
   }
 }
     `;

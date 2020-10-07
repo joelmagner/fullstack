@@ -6,6 +6,7 @@ import {
   Query,
   FieldResolver,
   Root,
+  UseMiddleware,
 } from "type-graphql";
 import { Context } from "../utils/types/Context";
 import { User } from "../entities/User";
@@ -23,6 +24,8 @@ import { validatePassword } from "../utils/validation/password.validate";
 import { validateToken } from "../utils/validation/token.validate";
 import { validateRegister } from "../utils/validation/register.validate";
 import { UserResponse } from "./responses/user.response";
+import { isAuth } from "../middleware/isAuth";
+import { validateUsername } from "../utils/validation/username.validate";
 
 @Resolver(User)
 export class UserResolver {
@@ -34,6 +37,43 @@ export class UserResolver {
     }
     //current user tries to access someone elses email
     return "";
+  }
+
+  @Mutation(() => UserResponse)
+  @UseMiddleware(isAuth)
+  async changeUsername(
+    @Arg("newUsername") username: string,
+    @Ctx() { req }: Context
+  ): Promise<UserResponse> {
+    const { userId } = req.session;
+    let errors = validateUsername(username);
+    if (errors) {
+      return { errors };
+    }
+
+    const currentUser = await User.findOne({ where: { id: userId } });
+    const isUsernameTaken = await User.findOne({ where: { username } });
+    if (isUsernameTaken) {
+      return {
+        errors: [
+          {
+            field: "username",
+            message: "That username already exists.",
+          },
+        ],
+      };
+    }
+    if (!currentUser) {
+      return {
+        errors: [
+          {
+            field: "username",
+            message: "Sorry, but you are not signed in somehow...",
+          },
+        ],
+      };
+    }
+    return await (await User.update(currentUser, { username })).raw[0];
   }
 
   @Mutation(() => UserResponse)

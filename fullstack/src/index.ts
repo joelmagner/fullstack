@@ -22,7 +22,6 @@ import { UserResolver } from "./repositories/user.resolver";
 import { VoteResolver } from "./repositories/vote.resolver";
 import { AttachmentResolver } from "./repositories/attachment.resolver";
 import { Attachment } from "./entities/Attachment";
-import path from "path";
 
 const main = async () => {
   await createConnection({
@@ -44,7 +43,6 @@ const main = async () => {
       credentials: true,
     })
   );
-  console.log("fil: ", path.join(__dirname, "/../attachments/profile/"));
   app.use(express.static(__dirname + "/../"));
   app.use(
     session({

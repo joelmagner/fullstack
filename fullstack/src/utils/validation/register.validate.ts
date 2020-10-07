@@ -1,6 +1,6 @@
 import { User } from "../../entities/User";
 import { UsernamePasswordInput } from "../../repositories/inputTypes/UsernamePasswordInput";
-import { USERNAME_FIELD } from "../field.names";
+import { EMAIL_FIELD, USERNAME_FIELD } from "../field.names";
 import { validateEmail } from "./email.validate";
 import { validatePassword } from "./password.validate";
 import { validateUsername } from "./username.validate";
@@ -22,7 +22,7 @@ export const validateRegister = (
   if (isEmailTaken !== undefined) {
     return [
       {
-        field: USERNAME_FIELD,
+        field: EMAIL_FIELD,
         message: "That email already exists",
       },
     ];

@@ -1,3 +1,14 @@
+import React, { useState } from "react";
+import NextLink from "next/link";
+import {
+  useGetProfilePictureQuery,
+  useLogoutMutation,
+  useMeQuery,
+} from "../generated/graphql";
+import { isServer } from "../utils/isServer";
+import { useRouter } from "next/router";
+
+import { context } from "./Layout";
 import {
   Avatar,
   Box,
@@ -6,8 +17,8 @@ import {
   Flex,
   Heading,
   Icon,
+  Text,
   IconButton,
-  ITheme,
   Link,
   Menu,
   MenuButton,
@@ -16,36 +27,24 @@ import {
   MenuItem,
   MenuList,
   Switch,
-  Text,
   theme,
 } from "@chakra-ui/core";
-import React from "react";
-import NextLink from "next/link";
-import {
-  AddProfilePictureDocument,
-  useGetProfilePictureQuery,
-  useLogoutMutation,
-  useMeQuery,
-} from "../generated/graphql";
-import { isServer } from "../utils/isServer";
-import { useRouter } from "next/router";
-
 interface NavBarProps {}
 
-const config = (theme: ITheme) => ({
-  light: {
-    color: theme.colors.gray[700],
-    bg: theme.colors.gray[800],
-    borderColor: theme.colors.gray[200],
-    placeholderColor: theme.colors.gray[500],
-  },
-  dark: {
-    color: theme.colors.whiteAlpha[900],
-    bg: theme.colors.gray[800],
-    borderColor: theme.colors.whiteAlpha[300],
-    placeholderColor: theme.colors.whiteAlpha[400],
-  },
-});
+// const config = (theme: ITheme) => ({
+//   light: {
+//     color: theme.colors.gray[700],
+//     bg: theme.colors.gray[800],
+//     borderColor: theme.colors.gray[200],
+//     placeholderColor: theme.colors.gray[500],
+//   },
+//   dark: {
+//     color: theme.colors.whiteAlpha[900],
+//     bg: theme.colors.gray[800],
+//     borderColor: theme.colors.whiteAlpha[300],
+//     placeholderColor: theme.colors.whiteAlpha[400],
+//   },
+// });
 
 export const NavBar: React.FC<NavBarProps> = ({}) => {
   const [{ data }] = useMeQuery({
@@ -56,13 +55,15 @@ export const NavBar: React.FC<NavBarProps> = ({}) => {
   const [{ data: profileData, fetching }] = useGetProfilePictureQuery({
     requestPolicy: "cache-first",
   });
+
   let body = null;
   let username = null;
-  let avatar = null;
+  let avatar = <Avatar size="sm" mr={4} />;
   let profilePicture = null;
+  const { value: collapsed, changeValue } = React.useContext(context);
 
   if (profileData?.getProfilePicture) {
-    profilePicture = profileData?.getProfilePicture.filename;
+    profilePicture = profileData?.getProfilePicture.imagePathname;
   }
 
   if (!data?.me) {
@@ -97,15 +98,27 @@ export const NavBar: React.FC<NavBarProps> = ({}) => {
         </NextLink>
       </>
     );
-    username = (
-      <div style={{ color: "gray" }}>
-        {data.me.username.charAt(0).toUpperCase() + data.me.username.slice(1)}
-      </div>
-    );
+    username =
+      data.me.username.charAt(0).toUpperCase() + data.me.username.slice(1);
     // logged in
   }
 
-  if (profileData?.getProfilePicture?.filename && data?.me) {
+  // // Warning: Can't perform a React state update on an unmounted component. This is a no-op, but it indicates a memory leak in your application. To fix, cancel all subscriptions and asynchronous tasks in a useEffect cleanup function.
+  // //   in Avatar (at NavBar.tsx:107)
+  // //   in button (created by Context.Consumer)
+  // //   in PseudoBox (created by Button)
+  // //   in Button (created by MenuButton)
+  // //   in MenuButton (at NavBar.tsx:157)
+  // //   in Menu (at NavBar.tsx:156)
+  // //   in div (created by Context.Consumer)
+  // //   in Box (created by Flex)
+  // //   in Flex (at NavBar.tsx:129)
+  // //   in ColorModeProvider (created by DarkMode)
+  // //   in DarkMode (at NavBar.tsx:128)
+  // //   in NavBar (at Layout.tsx:28)
+  // //   in Layout (at PostFeed.tsx:41)
+
+  if (profileData?.getProfilePicture?.filename && data?.me && !fetching) {
     avatar = (
       <Avatar
         size="sm"
@@ -113,13 +126,17 @@ export const NavBar: React.FC<NavBarProps> = ({}) => {
         background="transparent"
         src={
           profilePicture != null
-            ? `http://localhost:4000/attachments/profile/${profilePicture}`
+            ? `http://localhost:4000/${profilePicture}`
             : undefined
         }
         mr={4}
       />
     );
-  } else if (data?.me) {
+  } else if (
+    data?.me &&
+    !fetching &&
+    !profileData?.getProfilePicture?.filename
+  ) {
     avatar = <Avatar size="sm" name={data.me.username} mr={4} />;
   }
 
@@ -159,11 +176,22 @@ export const NavBar: React.FC<NavBarProps> = ({}) => {
               verticalAlign="center"
             >
               {avatar}
-              <Text lineHeight="1">{username}</Text>
+              <Text lineHeight="1" style={{ color: "gray" }}>
+                {username}
+              </Text>
             </MenuButton>
             <MenuList>
               <MenuGroup title="Profile">
-                <MenuItem>My Account</MenuItem>
+                <MenuItem>
+                  <NextLink
+                    href="/profile/[id]"
+                    as={`/profile/${data?.me?.username}`}
+                  >
+                    <Link mr={4} aria-label="My Account">
+                      My Account
+                    </Link>
+                  </NextLink>
+                </MenuItem>
                 <MenuItem>Payments </MenuItem>
               </MenuGroup>
               <MenuDivider />
