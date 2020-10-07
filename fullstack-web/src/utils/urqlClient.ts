@@ -46,6 +46,37 @@ const invalidateAllPosts = (cache: Cache) => {
   });
 };
 
+const attachmentLoad = (): Resolver => {
+  return (_parent, fieldArgs, cache, info) => {
+    const { parentKey: entityKey, fieldName } = info;
+    const allFields = cache.inspectFields(entityKey);
+    const fieldInfos = allFields.filter((info) => info.fieldName === fieldName);
+    const size = fieldInfos.length;
+    console.log("attachmentLoad!");
+    if (size === 0) {
+      return undefined;
+    }
+
+    const results: string[] = [];
+    const fieldKey = `${fieldName}(${stringifyVariables(fieldArgs)})`;
+    const isInCache = cache.resolve(
+      cache.resolveFieldByKey(entityKey, fieldKey) as string,
+      "Attachment"
+    );
+    info.partial = !isInCache;
+    fieldInfos.forEach((field) => {
+      const key = cache.resolveFieldByKey(entityKey, field.fieldKey) as string;
+      const data = cache.resolve(key, "Attachment") as string[];
+
+      results.push(...data);
+    });
+    return {
+      __typename: "AttachmentResponse",
+      id: results,
+    };
+  };
+};
+
 const cursorPagination = (): Resolver => {
   return (_parent, fieldArgs, cache, info) => {
     const { parentKey: entityKey, fieldName } = info;
@@ -94,14 +125,15 @@ export const urqlClient = (ssrExchange: any, ctx: any) => {
     },
     exchanges: [
       dedupExchange,
-      multipartFetchExchange,
       cacheExchange({
         keys: {
           PaginatedPosts: () => null,
+          Attachment: () => null,
         },
         resolvers: {
           Query: {
             posts: cursorPagination(),
+            attachment: attachmentLoad(),
           },
         },
         updates: {
@@ -210,6 +242,7 @@ export const urqlClient = (ssrExchange: any, ctx: any) => {
           },
         },
       }),
+      multipartFetchExchange,
       errorExchange,
       ssrExchange,
       fetchExchange,

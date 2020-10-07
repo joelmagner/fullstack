@@ -6,9 +6,6 @@ mutation AddProfilePicture($file: Upload!) {
     }
     attachment {
       id
-      user {
-        username
-      }
       filename
       mimetype
       encoding

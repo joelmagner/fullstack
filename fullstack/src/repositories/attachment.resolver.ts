@@ -1,12 +1,14 @@
 import { GraphQLUpload } from "apollo-server-express";
-import { createWriteStream, unlinkSync } from "fs";
+import { unlinkSync } from "fs";
 import { GraphQLScalarType } from "graphql";
 import {
   Arg,
   Ctx,
+  FieldResolver,
   Mutation,
   Query,
   Resolver,
+  Root,
   UseMiddleware,
 } from "type-graphql";
 import { Attachment } from "../entities/Attachment";
@@ -16,15 +18,23 @@ import { Context } from "../utils/types/Context";
 import { validateUpload } from "../utils/validation/upload.validate";
 import { v4 } from "uuid";
 import { AttachmentResponse } from "./responses/attachment.response";
+import { UploadType } from "../utils/types/UploadType";
+import { uploadFile } from "../utils/upload";
+import { PROFILE_ATTACHMENTS_PATH_RELATIVE } from "../utils/constants";
 
 const PROFILE_ATTACHMENTS_PATH = __dirname + "/../../attachments/profile/";
 
-@Resolver()
+@Resolver(Attachment)
 export class AttachmentResolver {
+  @FieldResolver(() => String)
+  imagePathname(@Root() root: Attachment) {
+    return PROFILE_ATTACHMENTS_PATH_RELATIVE + root.filename;
+  }
+
   @Query(() => [Attachment], { nullable: true })
   async getAttachments(@Ctx() { req }: Context): Promise<Attachment[] | null> {
     return await Attachment.find({
-      where: { user: req.session.userId, profilePicture: true },
+      where: { user: req.session.userId },
     });
   }
 
@@ -32,8 +42,12 @@ export class AttachmentResolver {
   async getProfilePicture(
     @Ctx() { req }: Context
   ): Promise<Attachment | undefined> {
+    const { userId } = req.session;
     return await Attachment.findOne({
-      where: { user: req.session.userId, profilePicture: true },
+      where: {
+        user: userId,
+        uploadType: UploadType.ProfilePicture,
+      },
     });
   }
 
@@ -56,46 +70,21 @@ export class AttachmentResolver {
     } as Attachment);
 
     if (errors) {
-      console.log("Errors!", errors);
+      console.log("Errors: ", errors);
       return { errors };
     }
-
-    const profilePictureExists = await Attachment.findOne({
-      where: { user: userId, profilePicture: true },
+    const hasProfilePicture = await Attachment.findOne({
+      where: { user: userId, uploadType: UploadType.ProfilePicture },
     });
 
     const UUID = v4();
     const fileExtension = filename.split(/(?=\.)/).pop();
     const hashedFilename = UUID + fileExtension;
-    console.log("new filename", hashedFilename);
 
     //@todo export into utils function
-    new Promise((resolve, reject) => {
-      createReadStream().pipe(
-        createWriteStream(PROFILE_ATTACHMENTS_PATH + hashedFilename, {
-          autoClose: true,
-        })
-          .on("error", (err: unknown) => {
-            console.log("Error occurred in fileupload", err);
-            reject(false);
-            return [
-              {
-                field: UPLOAD_FIELD,
-                message: "Error occurred in fileupload...",
-              },
-            ];
-          })
-          .on("finish", () => {
-            resolve(true);
-            return true;
-          })
-      );
-    });
-
     //already have a profile picture, remove the old one and insert the new one..
-    if (profilePictureExists?.profilePicture) {
-      console.log("PROFILE PICTURE ALREADY EXISTS!");
-      const oldFile = profilePictureExists.filename;
+    if (hasProfilePicture?.uploadType === UploadType.ProfilePicture) {
+      const oldFile = hasProfilePicture.filename;
 
       try {
         unlinkSync(PROFILE_ATTACHMENTS_PATH + oldFile);
@@ -111,26 +100,31 @@ export class AttachmentResolver {
         };
       }
 
-      const uploadResult = await Attachment.update(
+      await uploadFile(createReadStream, hashedFilename);
+      await Attachment.update(
         { user: userId },
         { filename: hashedFilename, mimetype, encoding, user: userId }
       );
-
-      console.log("Updated existing profile picture", uploadResult);
-      return uploadResult.raw[0];
+      console.log("returnar här!");
+      const res = await Attachment.findOne({
+        user: userId,
+        uploadType: UploadType.ProfilePicture,
+      });
+      console.log(res);
+      return { attachment: res };
     } else {
+      console.log("inserting new image!");
+
+      await uploadFile(createReadStream, hashedFilename);
       const uploadResult = await Attachment.insert({
         createReadStream,
         encoding,
         mimetype,
         filename: hashedFilename,
         user: userId,
-        profilePicture: true,
+        uploadType: UploadType.ProfilePicture,
       });
-      console.log(
-        "Inserted new profile picture for the first time",
-        uploadResult
-      );
+
       return uploadResult.raw[0];
     }
   }

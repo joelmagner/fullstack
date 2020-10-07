@@ -9,8 +9,15 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
+import { UploadType } from "../utils/types/UploadType";
 import { User } from "./User";
 
+import { registerEnumType } from "type-graphql";
+
+registerEnumType(UploadType, {
+  name: "UploadType",
+  description: "Specifies the type of attached file",
+});
 @ObjectType()
 @Entity()
 export class Attachment extends BaseEntity {
@@ -30,9 +37,9 @@ export class Attachment extends BaseEntity {
   @Column()
   mimetype!: string;
 
-  @Field(() => Boolean)
-  @Column({ type: "boolean", default: false })
-  profilePicture!: boolean;
+  @Field(() => UploadType)
+  @Column({ type: "enum", default: UploadType.Default, enum: UploadType })
+  uploadType!: UploadType;
 
   @Field()
   @Column()
